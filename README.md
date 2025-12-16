@@ -5,6 +5,11 @@
   Close tabs now. They reopen automatically when you're ready.</p>
 
   <p>
+    <a href="https://www.buymeacoffee.com/mtskf" target="_blank">
+      <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 48px !important;width: 174px !important;" />
+    </a>
+  </p>
+  <p>
     <a href="https://mtskf.github.io/Snooooze/"><strong>🌐 Visit Website</strong></a>
   </p>
 
