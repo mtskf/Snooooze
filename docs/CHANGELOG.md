@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **Package Manager**: Migrated from `npm` to `pnpm` for faster installs and disk space efficiency.
+- **Workflows**: Updated all `.agent/workflows` to use `pnpm` and added safety checks for uncommitted changes.
+
 ## [v0.1.0] - 2025-12-16
 
 ### Added

@@ -24,7 +24,6 @@ coverage/
 
 # Project Specific
 release/*.zip
-.agent/
 
 # Environment
 .env
