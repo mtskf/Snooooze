@@ -36,8 +36,4 @@ tmp_epub/
 .env.production.local
 
 
-
-
-assets/psd
-assets/sketch
-assets/slides
+dist

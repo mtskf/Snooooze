@@ -6,7 +6,8 @@
   :root {
     /* Neo Carbon Theme */
     /* Background: #0B0E14 -> 220 30% 6% */
-    --background: 220 30% 6%;
+    /* Background: Darker -> 220 50% 2% */
+    --background: 220 50% 2%;
     /* TextPrimary: #E5E7EB -> 210 16% 93.5% */
     --foreground: 210 16% 93.5%;
 
@@ -14,7 +15,8 @@
     --card: 221 39% 11%;
     --card-foreground: 210 16% 93.5%;
 
-    --popover: 221 39% 11%;
+    /* Popover: #030407 -> 225 40% 2% */
+    --popover: 225 40% 2%;
     --popover-foreground: 210 16% 93.5%;
 
     /* AccentPrimary: #4F46E5 -> 243 75% 59% */
@@ -58,7 +60,7 @@
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground;
   }
 }

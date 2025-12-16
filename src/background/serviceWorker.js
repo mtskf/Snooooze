@@ -13,6 +13,14 @@ chrome.runtime.onInstalled.addListener(async () => {
     console.log("Extension installed/updated.");
     await initStorage();
     chrome.alarms.create("popCheck", { periodInMinutes: 1 });
+    // Check for overdue tabs immediately
+    setTimeout(() => popCheck(), 1000);
+});
+
+// Run popCheck on browser startup (for persistent overdue tabs)
+chrome.runtime.onStartup.addListener(() => {
+    console.log("Browser started, checking for overdue tabs.");
+    setTimeout(() => popCheck(), 1000);
 });
 
 // Alarm listener for periodic checks
@@ -51,6 +59,10 @@ async function handleMessage(request, sendResponse) {
                 break;
             case "removeSnoozedTab":
                 await removeSnoozedTabWrapper(request.tab);
+                sendResponse({ success: true });
+                break;
+            case "clearAllSnoozedTabs":
+                await setSnoozedTabs({ tabCount: 0 });
                 sendResponse({ success: true });
                 break;
 

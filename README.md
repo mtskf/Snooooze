@@ -8,6 +8,9 @@
 - **Flexible Scheduling**: Choose from presets like "Later Today", "Tomorrow Morning", "This Weekend", or pick a specific date and time.
 - **Smart Restoration**:
   - **Global Control**: Configure whether tabs restore in the current window or a new window via Settings.
+- **Data Management**:
+  - **Export/Import**: Backup your snoozed tabs to a text file (compatible with OneTab).
+  - **Delete All**: Quickly clear all snoozed tabs with a single click.
 - **Timezone Aware**: Intelligent handling of timezones for start/end of day calculations.
 - **Privacy Focused**: Everything runs locally. No data is sent to the cloud.
 

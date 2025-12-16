@@ -18,3 +18,13 @@ Documents significant architectural decisions made during development.
 - **Context**: Browsers run on system time. Users may want to snooze based on a specific timezone (e.g., working remotely).
 - **Decision**: We calculate target times by "shifting" the `Date` object based on the delta between the system time and the target timezone time.
 - **Consequences**: We avoid heavy timezone libraries. `9:00 AM` in the target setting triggers when the wall-clock time in that zone is 9:00 AM, regardless of the user's actual system clock (relative calculation).
+
+## ADR-004: Export/Import Format (OneTab Compatibility)
+- **Context**: Users may want to backup/restore snoozed tabs or migrate from other extensions.
+- **Decision**: Use OneTab's simple text format: `URL | Title` (one per line).
+- **Consequences**: Interoperable with OneTab extension. Imported tabs are assigned a "Someday" timestamp (1 year in future) so they appear in the list without immediate notifications.
+
+## ADR-005: Shift+Shortcut Scope Switching
+- **Context**: Users need a quick way to toggle between snoozing selected tabs vs. entire window.
+- **Decision**: Use `e.shiftKey` directly in keyboard handler rather than relying on React state for immediate scope detection.
+- **Consequences**: Shift+L correctly snoozes all window tabs while L alone snoozes only selected. Visual state updates when Shift is held for user feedback.

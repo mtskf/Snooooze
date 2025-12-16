@@ -1,12 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
+import logo from '../assets/logo.svg';
 import { Button } from '@/components/ui/button';
+
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { getTime } from '@/utils/timeUtils';
-import { Clock, Moon, Sun, Armchair, Briefcase, CalendarDays, Monitor, AppWindow, Archive, Settings } from 'lucide-react';
+import { Clock, Moon, Sun, Armchair, Briefcase, CalendarDays, Monitor, AppWindow, Settings, Album, Inbox } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export default function Popup() {
@@ -14,6 +15,7 @@ export default function Popup() {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [scope, setScope] = useState('selected'); // 'selected' | 'window'
     const [tabCount, setTabCount] = useState(0);
+    const [snoozedCount, setSnoozedCount] = useState(0);
 
     useEffect(() => {
         // Update tab count based on scope
@@ -22,6 +24,18 @@ export default function Popup() {
         // Listen for selection changes to update count dynamically
         const tabListener = () => updateTabCount();
         chrome.tabs.onHighlighted.addListener(tabListener);
+
+        // Fetch snoozed count
+        chrome.storage.local.get("snoozedTabs", (result) => {
+            const tabs = result.snoozedTabs || {};
+            let count = 0;
+            Object.keys(tabs).forEach(key => {
+                if (key !== 'tabCount' && Array.isArray(tabs[key])) {
+                    count += tabs[key].length;
+                }
+            });
+            setSnoozedCount(count);
+        });
 
         return () => {
             chrome.tabs.onHighlighted.removeListener(tabListener);
@@ -33,6 +47,12 @@ export default function Popup() {
         const handleKeyDown = (e) => {
             if (e.target.tagName === 'INPUT') return; // Don't trigger when typing
 
+            // Shift key press updates visual state
+            if (e.key === 'Shift') {
+                setScope('window');
+                return;
+            }
+
             const key = e.key.toUpperCase();
 
             // Pick Date shortcut
@@ -43,13 +63,25 @@ export default function Popup() {
 
             const item = items.find(i => i.shortcuts.includes(key));
             if (item) {
-                handleSnooze(item.id);
+                // Use e.shiftKey directly for immediate scope detection
+                handleSnoozeWithScope(item.id, e.shiftKey ? 'window' : 'selected');
+            }
+        };
+
+        const handleKeyUp = (e) => {
+            // Shift release always returns to 'selected'
+            if (e.key === 'Shift') {
+                setScope('selected');
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [scope]); // Depends on scope for handleSnooze context
+        window.addEventListener('keyup', handleKeyUp);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, []); // Remove scope dependency since we use e.shiftKey directly
 
     const updateTabCount = () => {
         if (scope === 'selected') {
@@ -80,22 +112,32 @@ export default function Popup() {
         }
     }
 
+    // Handle snooze with explicit scope (for keyboard shortcuts with Shift)
+    const handleSnoozeWithScope = async (key, explicitScope) => {
+        const time = await getTime(key);
+        snoozeTabsWithScope(time, explicitScope);
+    };
+
     const snoozeTabs = (time) => {
+        snoozeTabsWithScope(time, scope);
+    }
+
+    const snoozeTabsWithScope = (time, targetScope) => {
         if (!time) return; // Safety check
 
-        const query = scope === 'selected'
+        const query = targetScope === 'selected'
             ? { currentWindow: true, highlighted: true }
             : { currentWindow: true };
 
         chrome.tabs.query(query, (tabs) => {
             tabs.forEach((tab) => {
-                performSnooze(tab, time, false);
+                performSnooze(tab, time, targetScope === 'window');
             });
             window.close();
         });
     }
 
-    const performSnooze = (tab, time, closePopup) => {
+    const performSnooze = (tab, time, openInNewWindow) => {
         const tabToSend = {
             id: tab.id,
             url: tab.url,
@@ -107,7 +149,7 @@ export default function Popup() {
             action: "snooze",
             tab: tabToSend,
             popTime: time.getTime(),
-            openInNewWindow: scope === 'window'
+            openInNewWindow: openInNewWindow
         }, (response) => {
              // The window.close() is now handled by snoozeTabs, not here.
              // This ensures all tabs are processed before closing.
@@ -128,38 +170,51 @@ export default function Popup() {
         <div className="w-[350px] bg-background text-foreground min-h-[500px] flex flex-col">
             <div className="p-4 pt-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-xl font-bold">New Snooze</h1>
-                    <Button size="icon" className="bg-secondary text-muted-foreground border border-border/50 h-8 w-8 hover:bg-secondary/80 shadow-none" onClick={() => chrome.runtime.openOptionsPage()}>
-                        <Settings className="h-4 w-4" />
-                    </Button>
+                    <img src={logo} alt="Snooze" className="h-6" />
+                    <div className="flex gap-1">
+                        <Button className="bg-secondary text-muted-foreground border border-border/50 h-8 px-3 hover:bg-secondary/80 shadow-none flex items-center gap-2" onClick={() => chrome.runtime.openOptionsPage()}>
+                            <Inbox className="h-4 w-4" />
+
+                            {snoozedCount > 0 && (
+                                <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-primary text-[9px] text-primary-foreground font-bold">
+                                    {snoozedCount > 999 ? '999+' : snoozedCount}
+                                </span>
+                            )}
+                        </Button>
+                        <Button size="icon" className="bg-secondary text-muted-foreground border border-border/50 h-8 w-8 hover:bg-secondary/80 shadow-none" onClick={() => chrome.tabs.create({ url: chrome.runtime.getURL('options/index.html#settings') })}>
+                            <Settings className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Scope Selection via RadioGroup */}
                 <RadioGroup value={scope} onValueChange={setScope} className="grid grid-cols-2 gap-3 mb-4">
                     <label
                         className={cn(
-                            "cursor-pointer rounded-xl p-4 flex flex-col items-center justify-center gap-2 border-2 transition-all hover:bg-secondary",
+                            "cursor-pointer rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 border-2 transition-all hover:bg-secondary",
                             scope === 'selected' ? "border-primary bg-accent/10" : "border-transparent bg-secondary/50"
                         )}
                     >
                         <div className="rounded-md bg-gradient-to-br from-pink-500 to-rose-500 p-2 text-white shadow-sm">
-                            <AppWindow className="h-6 w-6" />
+                            <Album className="h-5 w-5" />
                         </div>
-                        <span className="font-medium">Selected tabs</span>
-                        <RadioGroupItem value="selected" id="scope-selected" className="mt-2" />
+                        <span className="font-medium text-sm">Selected tabs</span>
+                        <span className="text-[10px] text-muted-foreground">Default</span>
+                        <RadioGroupItem value="selected" id="scope-selected" className="sr-only" />
                     </label>
 
                     <label
                         className={cn(
-                            "cursor-pointer rounded-xl p-4 flex flex-col items-center justify-center gap-2 border-2 transition-all hover:bg-secondary",
+                            "cursor-pointer rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 border-2 transition-all hover:bg-secondary",
                             scope === 'window' ? "border-primary bg-accent/10" : "border-transparent bg-secondary/50"
                         )}
                     >
                          <div className="rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 p-2 text-white shadow-sm">
-                            <Archive className="h-6 w-6" />
+                            <AppWindow className="h-5 w-5" />
                         </div>
-                        <span className="font-medium">Window</span>
-                        <RadioGroupItem value="window" id="scope-window" className="mt-2" />
+                        <span className="font-medium text-sm">Window</span>
+                        <span className="text-[10px] text-muted-foreground">Hold Shift</span>
+                        <RadioGroupItem value="window" id="scope-window" className="sr-only" />
                     </label>
                 </RadioGroup>
 

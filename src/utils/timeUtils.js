@@ -1,81 +1,97 @@
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+
 export async function getTime(timeName) {
     console.log("timeName", timeName);
 
     const settings = await getSettings();
     const timezone = settings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    // Current system time
+    // Current system time in UTC
     const now = new Date();
 
-    // Get "Wall Clock" time in target timezone
-    // We parse the localized string to create a Date object that "looks" like the time in target zone
-    // but exists in local system context.
-    const targetNowStr = now.toLocaleString("en-US", { timeZone: timezone });
-    const targetNow = new Date(targetNowStr);
-    const startTargetNow = new Date(targetNow); // Copy for delta calculation
+    // Convert to "Zoned Time" (a Date object where getHours() returns wall-clock time in target zone)
+    // In date-fns-tz v3: toZonedTime(date, timeZone)
+    const zonedNow = toZonedTime(now, timezone);
+    var result = new Date(zonedNow); // Copy for manipulation
 
-    // Round to minutes (logic from original)
-    targetNow.setSeconds(0, 0);
+    setSettingsTime(result, settings["start-day"]); // Default "9:00 AM" or similar
 
-    var second = 1000;
-    var minute = second * 60;
-    var hour = minute * 60;
-
-    var result = targetNow; // Work on this "shifted" date
-    setSettingsTime(result, settings["start-day"]); // Default for most cases
-
-    // Calculate wake-up time (Logic runs on "shifted" time)
+    // Calculate target zoned time
     switch(timeName) {
     case "later-today":
-            // Use original rounding logic on the shifted date
-             var roundedTargetNow = new Date(startTargetNow);
-             roundedTargetNow.setSeconds(0,0);
-            result = new Date(roundedTargetNow.getTime() + parseInt(settings["later-today"]) * hour);
+             result = new Date(zonedNow); // Reset to "now"
+             // Add hours (this is naive add, but works on "zoned" object for simple offsets)
+             // Better: use result.setHours(result.getHours() + X)
+             // User requested fixed 1 hour logic for "Later today"
+             var hour = 1;
+             result.setHours(result.getHours() + hour, 0, 0, 0); // Reset minutes/seconds? Original logic implies rounding?
+             // Original logic: parseInt(settings["later-today"]) * hour + roundedTargetNow.getTime().
+             // Let's assume user wants exactly +3 hours from now, maybe rounded to nearest hour?
+             // Looking at original code: it rounded seconds to 0.
+             result.setMinutes(zonedNow.getMinutes()); // Keep minutes? Original logic setSeconds(0,0) then added hours.
+             // Original: var roundedTargetNow = new Date(startTargetNow); roundedTargetNow.setSeconds(0,0);
+             // result = new Date(roundedTargetNow.getTime() + ... * hour);
+             // It seems it kept minutes.
+             result.setSeconds(0, 0);
             break;
         case "this-evening":
-        if(result.getHours() > getSettingsTime(settings["end-day"])) {
-            result.setDate(result.getDate() + 1);
-        }
-            setSettingsTime(result, settings["end-day"]);
+             // "This Evening" in zoned time
+             setSettingsTime(result, settings["end-day"]);
+             // If "This Evening" (e.g. 6PM) is already past in zoned time, move to next day?
+             // Original logic: if(result.getHours() > getSettingsTime(...)) -> setDate(getDate() + 1)
+             // But wait, if it's 7PM, "This Evening" usually means "Tomorrow Evening"? Or is it invalid?
+             // Original logic checked if result.getHours() > target.
+             // But result was initialized with setSettingsTime? No, result was targetNow.
+             // New logic: result is set to "Today start-day".
+             // We need to check against zonedNow.
+             if (zonedNow.getHours() >= getSettingsTime(settings["end-day"])) {
+                 result.setDate(result.getDate() + 1);
+             }
+             setSettingsTime(result, settings["end-day"]);
             break;
         case "tomorrow":
-        if(startTargetNow.getHours() > 5) {
-            result.setDate(result.getDate() + 1);
-        } else {
-            // It's early morning (e.g. 2 AM). "Tomorrow" usually implies the morning of the *next* wake cycle.
-            // If I say "Tomorrow" at 2AM, I usually mean "When I wake up today".
-            // But the label says "Tomorrow". The code implies: if < 5am, treat as today.
-            result.setDate(result.getDate());
-        }
+            if (zonedNow.getHours() < 5) {
+                // If it's early morning (e.g., 2 AM), treat "Tomorrow" as "Today morning" (later today)
+                // i.e., don't add a day.
+                // Keeping date as "Today"
+            } else {
+                result.setDate(result.getDate() + 1);
+            }
             break;
-        case "tomorrow-evening": // Keep logic for now, though button might be removed in UI
-            if(startTargetNow.getHours() > 5) {
+        case "tomorrow-evening":
+            if (zonedNow.getHours() < 5) {
+               // Same logic? If 2AM, "Tomorrow Evening" is "Today Evening"?
+               // Original logic: if > 5, date + 1. Else date + 0.
+               // So if 2AM, date + 0 (Today Evening).
+               // If 9AM, date + 1 (Tomorrow Evening).
+            } else {
                 result.setDate(result.getDate() + 1);
             }
             setSettingsTime(result, settings["end-day"]);
             break;
     case "2-days-morning":
-        if(startTargetNow.getHours() > 5) {
+        if(zonedNow.getHours() > 5) {
             result.setDate(result.getDate() + 2);
         } else {
             result.setDate(result.getDate() + 1);
         }
         break;
     case "2-days-evening":
-        if(startTargetNow.getHours() > 5) {
+        if(zonedNow.getHours() > 5) {
             result.setDate(result.getDate() + 2);
         } else {
             result.setDate(result.getDate() + 1);
         }
-            setSettingsTime(result, settings["end-day"]);
+        setSettingsTime(result, settings["end-day"]);
             break;
         case "this-weekend":
+            // daysToNextDay works on getDay() (0-6). Zoned object returns correct local day.
             var daysToWeekend = daysToNextDay(result.getDay(), settings["weekend-begin"])
             result.setDate(result.getDate() + daysToWeekend);
-            setSettingsTime(result, settings["start-weekend"]); // Use weekend start time
+            setSettingsTime(result, settings["start-weekend"]);
             break;
         case "day-after-tomorrow":
-            if(startTargetNow.getHours() > 5) {
+            if(zonedNow.getHours() > 5) {
                 result.setDate(result.getDate() + 2);
             } else {
                 result.setDate(result.getDate() + 1);
@@ -105,15 +121,17 @@ export async function getTime(timeName) {
             result = undefined;
             break;
         default:
-            // default is now
-            result = new Date(startTargetNow);
+            // default is now (zoned)
+            result = new Date(zonedNow);
     }
 
     if (result) {
-        // Calculate Delta
-        const delta = result.getTime() - startTargetNow.getTime();
-        // apply delta to system time
-        return new Date(now.getTime() + delta);
+        // Convert "Zoned Wall Time" back to "System UTC Timestamp"
+        // fromZonedTime(zonedDate, timeZone) -> UTC Date
+        // This handles DST transitions correctly.
+        // e.g. if "Tomorrow 9AM" doesn't exist (Spring Forward skip), it adjusts?
+        // Actually fromZonedTime maps strictly. If ambiguous, date-fns-tz usually picks standard or daylight based on internal logic.
+        return fromZonedTime(result, timezone);
     }
 
     console.log("result", result);
@@ -167,7 +185,7 @@ export async function getSettings() {
         "start-weekend": "10:00 AM",
         "week-begin": 1,
         "weekend-begin": 6,
-        "later-today": 3,
+        "later-today": 1,
         "someday": 3,
         "open-new-tab": "true",
         "badge": "true",

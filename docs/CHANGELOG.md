@@ -2,20 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v0.3.0] - Unreleased
+## [v0.0.0] - Unreleased
 
 ### Added
-- **Timezone Support**: Added a "Timezone" setting in Options. Snooze times now correctly respect the selected or detected timezone.
-- **Clear All Icon**: Added a trash icon to the "Clear All" button in the Snoozed Tabs list.
+- **Timezone Combobox**: Replaced dropdown with searchable city selection (e.g., "New York", "Tokyo").
+- **DST Support**: Integrated `date-fns-tz` for accurate Daylight Saving Time calculations and display.
+- **Dynamic Offsets**: Timezone list now maps current GMT offsets (e.g., `(GMT +9:00)`).
+- **Export/Import**: Export and import snoozed tabs in OneTab-compatible format (`URL | Title`).
+- **Shift+Shortcut**: Hold Shift while pressing shortcuts to snooze entire window instead of selected tabs.
+- **Snoozed Button**: Added "Snoozed" button to Popup header with count badge (displays 999+ for large counts).
+- **Overdue Restoration**: Tabs past their scheduled snooze time are now restored immediately on browser startup.
 
 ### Changed
-- **Restoration Logic**: "Open in New Tab" setting now globally determines if tabs open in the current window or a new window, simplifying behavior.
-- **Window Snoozing**: Reverted window grouping in the UI. Snoozed windows now appear as individual tabs in the list but can still be snoozed as a batch.
-- **UI Refresh**: Updated the entire application to the "Neo Carbon" dark theme for a modern, professional aesthetic.
-- **Renaming**: Renamed "Snoozed Tabs" section to "Snoozed".
+- **Settings Layout**: Morning, Evening, and Timezone settings are now on a single row.
+- **Popup Scope UI**: Reduced button size, added "Default" / "Hold Shift" labels under scope selection.
+- **Popup Title**: Changed to "Snooooze" with playful branding.
+- **Settings Button**: Now opens directly to the Settings tab (using URL hash).
+- **UI Refresh**: Applied "Neo Carbon" dark theme for modern aesthetic.
+- **SelectLabel Styling**: Darkened timezone group labels for better visual hierarchy.
 
 ### Removed
-- **Badge Count**: Removed the unread badge count from the extension icon.
+- **Badge Count**: Removed unread badge count from extension icon.
+- **Radio Indicators**: Visually hidden radio buttons in scope selection (functionality preserved).
 
 ### Fixed
-- **Race Condition**: Fixed a bug where snoozing multiple tabs simultaneously (e.g., a full window) caused data loss. Implemented mutex lock for storage.
+- **Race Condition**: Fixed data loss when snoozing multiple tabs simultaneously.
