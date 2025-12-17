@@ -328,8 +328,6 @@ export default function Options() {
                                             <span className="bg-background text-muted-foreground text-[10px] font-mono font-medium px-1.5 py-1 rounded border border-border/50">Cmd/Ctrl + .</span>
                                             <Button
                                                 variant="outline"
-                                                size="sm"
-                                                className="h-7 text-xs"
                                                 onClick={() => chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })}
                                             >
                                                 Configure
