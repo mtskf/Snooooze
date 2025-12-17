@@ -168,7 +168,7 @@ export default function Options() {
     }, [snoozedTabs, searchQuery]);
 
     return (
-        <div className="container max-w-3xl py-8">
+        <div className="container max-w-2xl py-8">
             <img src={logo} alt="Snooze" className="h-8 mb-6" />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
