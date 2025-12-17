@@ -54,13 +54,20 @@ Declutter your browser and your mind. **Snooooze** helps you focus on the task a
 
 Master the keyboard to manage your tabs at the speed of thought.
 
-| Action | Mac | Windows / Linux |
-| :--- | :--- | :--- |
-| **Open Snooze Popup** | `Cmd` + `.` | `Ctrl` + `.` |
-| **Snooze Selection** | `1` - `7` | `1` - `7` |
-| **Snooze Window** | `Shift` + `1-7` | `Shift` + `1-7` |
-| **Toggle Scope** | `Shift` | `Shift` |
-| **Navigate** | `Tab` / `Arrows` | `Tab` / `Arrows` |
+| Action | Shortcut |
+| :--- | :--- |
+| **Open Snooze Popup** | `Cmd` + `.` (Mac) / `Ctrl` + `.` (Win) |
+| **Later Today** | `L` |
+| **This Evening** | `E` |
+| **Tomorrow** | `T` |
+| **This Weekend** | `S` |
+| **Next Monday** | `N` |
+| **In a Week** | `W` |
+| **In a Month** | `M` |
+| **Pick Date** | `P` |
+| **Snooze Window** | Hold `Shift` + any shortcut |
+
+> **Tip**: Customize shortcuts in Settings → Keyboard Shortcuts
 
 <br>
 

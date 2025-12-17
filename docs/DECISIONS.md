@@ -43,3 +43,8 @@ Documents significant architectural decisions made during development.
 - **Context**: `react-day-picker` v8's default dropdowns are native unstyled elements, while Shadcn UI typically uses its own `Select` component (which is complex to integrate cleanly into v8 due to focus management).
 - **Decision**: Implemented a custom `Dropdown` component that layers an invisible native `<select>` over a purely visual label + chevron.
 - **Consequences**: Achieves the visual fidelity of Shadcn's design system while leveraging the robust, accessible native navigation logic of `react-day-picker`.
+
+## ADR-009: Single-Letter Hotkeys
+- **Context**: Originally each snooze option had two shortcuts (number + letter), making the UI cluttered and hard to remember.
+- **Decision**: Simplified to single-letter shortcuts only (L, E, T, S, N, W, M, P for Pick Date).
+- **Consequences**: Cleaner UI with one shortcut badge per option. Users can still customize shortcuts in Settings. The "Pick Date" option is now also configurable.

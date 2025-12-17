@@ -61,8 +61,12 @@ All notable changes to this project will be documented in this file.
 - **Debug UI**: Removed "Check Now" button.
 ### Added
 - **Snoozed Search**: Added real-time search filtering for snoozed tabs with space/comma-delimited multi-keyword support.
+- **Pick Date Shortcut**: Added "Pick Date" to configurable keyboard shortcuts in Settings.
 
 ### Changed
+- **Hotkeys**: Simplified from dual (number+letter) to single letter shortcuts (L, E, T, S, N, W, M, P).
 - **Calendar UI**: Replaced Popover with a custom modal overlay for better visibility and focus management.
-- **Calendar Logic**: Implemented `captionLayout="dropdown-buttons"` with a custom Shadcn-compatible Dropdown component to allow intuitive year/month navigation.
+- **Calendar Logic**: Implemented `captionLayout="dropdown-buttons"` with a custom Shadcn-compatible Dropdown component for intuitive year/month navigation.
+- **Calendar Escape**: Pressing Escape now closes only the calendar, not the entire popup.
 - **Options Layout**: Refined "Snooze Timing" into "Start Day" and "End Day" rows, and aligned "Keyboard Shortcuts" for consistent UI flow.
+- **ShortcutEditor**: Added icons with colors matching Popup styling to the Keyboard Shortcuts section.
