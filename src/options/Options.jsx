@@ -322,9 +322,7 @@ export default function Options() {
                                         <div className="flex items-center gap-3">
                                             <div className="flex items-center gap-3 text-muted-foreground">
                                                 <Keyboard className="h-4 w-4 text-primary" />
-                                                <div className="space-y-0.5">
-                                                    <div className="text-sm font-medium text-foreground">Activate Extension</div>
-                                                </div>
+                                                <span>Activate Extension</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
