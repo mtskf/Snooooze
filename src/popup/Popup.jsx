@@ -317,7 +317,8 @@ export default function Popup() {
           <div className="flex gap-1">
             <div className="relative">
               <Button
-                className="bg-secondary text-muted-foreground border border-border/50 h-8 px-3 hover:bg-secondary/80 shadow-none flex items-center gap-2"
+                size="icon"
+                className="bg-secondary text-muted-foreground border border-border/50 h-8 w-8 hover:bg-secondary/80 shadow-none"
                 onClick={() => chrome.runtime.openOptionsPage()}
               >
                 <Inbox className="h-4 w-4" />
