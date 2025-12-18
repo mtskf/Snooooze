@@ -58,7 +58,7 @@ const SnoozedList = React.memo(({ snoozedTabs, onClearTab, onClearGroup }) => {
                                 <div className="flex flex-row items-center p-3 justify-between border-b border-border/40">
                                      <div className="flex items-center gap-3">
                                         {/* Icon Facade */}
-                                        <div className="w-4 h-4 ml-1 flex items-center justify-center bg-foreground text-background rounded-[2px]">
+                                        <div className="w-4 h-4 ml-1 flex items-center justify-center bg-muted/40 text-foreground rounded-[2px]">
                                             <AppWindow className="w-3 h-3" />
                                         </div>
                                         <div className="flex flex-col">
