@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { getTime } from '@/utils/timeUtils';
-import { Clock, Moon, Sun, Armchair, Briefcase, CalendarDays, Monitor, AppWindow, Settings, Album, Inbox } from 'lucide-react';
+import { Clock, Moon, Sun, Armchair, Briefcase, CalendarDays, CalendarClock, CalendarRange, Monitor, AppWindow, Settings, Album, Inbox } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 import { DEFAULT_SHORTCUTS } from '@/utils/constants';
@@ -21,7 +21,7 @@ export default function Popup() {
          { id: 'tomorrow', label: 'Tomorrow', icon: Sun, shortcuts: [], color: 'text-amber-400' },
          { id: 'this-weekend', label: 'This weekend', icon: Armchair, shortcuts: [], color: 'text-green-400' },
          { id: 'next-monday', label: 'Next Monday', icon: Briefcase, shortcuts: [], color: 'text-amber-400' },
-         { id: 'in-a-week', label: 'In a week', icon: Briefcase, shortcuts: [], color: 'text-blue-400' },
+         { id: 'in-a-week', label: 'In a week', icon: CalendarRange, shortcuts: [], color: 'text-blue-400' },
          { id: 'in-a-month', label: 'In a month', icon: CalendarDays, shortcuts: [], color: 'text-purple-400' },
     ]);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
