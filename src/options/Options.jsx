@@ -42,7 +42,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SnoozedList from "./SnoozedList";
-import { DEFAULT_SHORTCUTS } from "@/utils/constants";
+import {
+  DEFAULT_SHORTCUTS,
+  VIVID_COLORS,
+  HEATMAP_COLORS,
+} from "@/utils/constants";
 import TimeSettings from "./TimeSettings";
 import GlobalShortcutSettings from "./GlobalShortcutSettings";
 import SnoozeActionSettings from "./SnoozeActionSettings";
@@ -299,10 +303,37 @@ export default function Options() {
 
                   {snoozedTabs.tabCount > 0 && (
                     <Button
-                      variant="destructive"
+                      variant="ghost"
                       size="xs"
-                      className="h-7 text-[10px]"
-                      onClick={clearAll}
+                      className={cn(
+                        "h-7 text-[10px]",
+                        (() => {
+                          const appearance = settings.appearance;
+                          const getHex = (cls) =>
+                            cls?.replace("text-[", "").replace("]", "");
+
+                          if (appearance === "vivid" && VIVID_COLORS?.delete) {
+                            const hex = getHex(VIVID_COLORS.delete);
+                            return `text-[${hex}] hover:text-[${hex}] hover:bg-[${hex}]/10`;
+                          }
+                          if (
+                            appearance === "heatmap" &&
+                            HEATMAP_COLORS?.delete
+                          ) {
+                            const hex = getHex(HEATMAP_COLORS.delete);
+                            return `text-[${hex}] hover:text-[${hex}] hover:bg-[${hex}]/10`;
+                          }
+                          return "text-destructive hover:text-destructive hover:bg-destructive/10";
+                        })()
+                      )}
+                      onClick={() => {
+                        if (confirm("Clear all snoozed tabs?")) {
+                          chrome.runtime.sendMessage({
+                            action: "clearAllSnoozed",
+                          });
+                          setSnoozedTabs({});
+                        }
+                      }}
                     >
                       <Trash2 className="mr-2 h-3 w-3" />
                       Delete All
@@ -318,6 +349,7 @@ export default function Options() {
                 onClearTab={clearTab}
                 onClearGroup={clearGroup}
                 onRestoreGroup={restoreGroup}
+                appearance={settings.appearance || "default"}
               />
             </CardContent>
           </Card>

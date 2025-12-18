@@ -49,4 +49,18 @@ export const VIVID_COLORS = {
   "in-a-week": "text-[#4F8CFF]",      // Blue
   "in-a-month": "text-[#A78BFA]",     // Purple
   "pick-date": "text-[#22D3EE]",      // Cyan
+  "delete": "text-[#F43F5E]",         // Rose
+};
+
+// Warm Heatmap (activity-based warmth)
+export const HEATMAP_COLORS = {
+  "later-today": "text-[#FF2F6D]",    // Critical
+  "this-evening": "text-[#FF3B3B]",   // Very Hot
+  tomorrow: "text-[#FF5C1A]",         // Hot
+  "this-weekend": "text-[#FF8C1A]",   // Warm
+  "next-monday": "text-[#FF8C1A]",    // Warm
+  "in-a-week": "text-[#FFB703]",      // Warm Start
+  "in-a-month": "text-[#FFB703]/75",  // Warm Start (Dim)
+  "pick-date": "text-[#FF8C1A]/60",   // Neutral (Escape)
+  "delete": "text-[#FF2F6D]",         // Critical
 };

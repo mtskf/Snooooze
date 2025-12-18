@@ -30,7 +30,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { DEFAULT_SHORTCUTS, DEFAULT_COLORS, VIVID_COLORS } from "@/utils/constants";
+import {
+  DEFAULT_SHORTCUTS,
+  DEFAULT_COLORS,
+  VIVID_COLORS,
+  HEATMAP_COLORS,
+} from "@/utils/constants";
 
 export default function Popup() {
   const [date, setDate] = useState();
@@ -120,10 +125,10 @@ export default function Popup() {
 
       setItems((prevItems) =>
         prevItems.map((item) => {
-          const colorScheme =
-            (result.settings || {}).appearance === "vivid"
-              ? VIVID_COLORS
-              : DEFAULT_COLORS;
+          let colorScheme = DEFAULT_COLORS;
+          const appSetting = (result.settings || {}).appearance;
+          if (appSetting === "vivid") colorScheme = VIVID_COLORS;
+          if (appSetting === "heatmap") colorScheme = HEATMAP_COLORS;
           return {
             ...item,
             shortcuts: finalShortcuts[item.id] || [],
@@ -474,7 +479,17 @@ export default function Popup() {
             )}
           >
             <div className="flex items-center gap-3">
-              <CalendarDays className={cn(`h-5 w-5 ${appearance === "vivid" ? VIVID_COLORS["pick-date"] : DEFAULT_COLORS["pick-date"]}`)} />
+              <CalendarDays
+                className={cn(
+                  `h-5 w-5 ${
+                    appearance === "vivid"
+                      ? VIVID_COLORS["pick-date"]
+                      : appearance === "heatmap"
+                      ? HEATMAP_COLORS["pick-date"]
+                      : DEFAULT_COLORS["pick-date"]
+                  }`
+                )}
+              />
               <span className="font-medium">Pick Date</span>
             </div>
             <div className="flex gap-1">
