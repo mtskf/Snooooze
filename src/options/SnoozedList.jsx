@@ -81,7 +81,7 @@ const SnoozedList = React.memo(
                         <AppWindow className="w-3 h-3" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium hover:underline cursor-pointer">
                           Window Group
                         </span>
                         <span className="text-xs text-muted-foreground flex gap-2">
