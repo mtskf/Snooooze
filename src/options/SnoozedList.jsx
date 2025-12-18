@@ -2,11 +2,23 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, AppWindow } from "lucide-react";
+import { VIVID_COLORS } from "@/utils/constants";
 
 import { cn } from "@/lib/utils";
 
 const SnoozedList = React.memo(
-  ({ snoozedTabs, onClearTab, onClearGroup, onRestoreGroup }) => {
+  ({
+    snoozedTabs,
+    onClearTab,
+    onClearGroup,
+    onRestoreGroup,
+    appearance = "default",
+  }) => {
+    // Delete color style
+    const deleteHoverStyle =
+      appearance === "vivid"
+        ? `hover:text-[${VIVID_COLORS.delete.replace("text-[", "").replace("]", "")}]`
+        : "hover:text-destructive";
     const renderList = () => {
       const timestamps = Object.keys(snoozedTabs).sort();
       const days = [];
@@ -99,7 +111,10 @@ const SnoozedList = React.memo(
                           e.stopPropagation();
                           onClearGroup(groupId);
                         }}
-                        className="h-8 w-8 hover:text-destructive text-muted-foreground transition-colors"
+                        className={cn(
+                          "h-8 w-8 text-muted-foreground transition-colors",
+                          deleteHoverStyle
+                        )}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -134,7 +149,10 @@ const SnoozedList = React.memo(
                           variant="ghost"
                           size="icon"
                           onClick={() => onClearTab(tab)}
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive text-muted-foreground"
+                          className={cn(
+                            "h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground",
+                            deleteHoverStyle
+                          )}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -176,7 +194,10 @@ const SnoozedList = React.memo(
                     variant="ghost"
                     size="icon"
                     onClick={() => onClearTab(tab)}
-                    className="h-8 w-8 hover:text-destructive text-muted-foreground transition-colors"
+                    className={cn(
+                      "h-8 w-8 text-muted-foreground transition-colors",
+                      deleteHoverStyle
+                    )}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

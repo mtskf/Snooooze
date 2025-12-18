@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SnoozedList from "./SnoozedList";
-import { DEFAULT_SHORTCUTS } from "@/utils/constants";
+import { DEFAULT_SHORTCUTS, VIVID_COLORS } from "@/utils/constants";
 import TimeSettings from "./TimeSettings";
 import GlobalShortcutSettings from "./GlobalShortcutSettings";
 import SnoozeActionSettings from "./SnoozeActionSettings";
@@ -299,10 +299,22 @@ export default function Options() {
 
                   {snoozedTabs.tabCount > 0 && (
                     <Button
-                      variant="destructive"
+                      variant="ghost"
                       size="xs"
-                      className="h-7 text-[10px]"
-                      onClick={clearAll}
+                      className={cn(
+                        "h-7 text-[10px]",
+                        settings.appearance === "vivid"
+                          ? `text-[${VIVID_COLORS.delete.replace("text-[", "").replace("]", "")}] hover:text-[${VIVID_COLORS.delete.replace("text-[", "").replace("]", "")}] hover:bg-[${VIVID_COLORS.delete.replace("text-[", "").replace("]", "")}]/10`
+                          : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                      )}
+                      onClick={() => {
+                        if (confirm("Clear all snoozed tabs?")) {
+                          chrome.runtime.sendMessage({
+                            action: "clearAllSnoozed",
+                          });
+                          setSnoozedTabs({});
+                        }
+                      }}
                     >
                       <Trash2 className="mr-2 h-3 w-3" />
                       Delete All
@@ -315,9 +327,10 @@ export default function Options() {
             <CardContent>
               <SnoozedList
                 snoozedTabs={filteredTabs}
-                onClearTab={clearTab}
-                onClearGroup={clearGroup}
-                onRestoreGroup={restoreGroup}
+                onClearTab={handleClearTab}
+                onClearGroup={handleClearGroup}
+                onRestoreGroup={handleRestoreGroup}
+                appearance={settings.appearance || "default"}
               />
             </CardContent>
           </Card>
