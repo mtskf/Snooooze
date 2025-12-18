@@ -235,16 +235,16 @@ export default function Options() {
       <img src={logo} alt="Snooze" className="h-8 mb-6" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 bg-card">
           <TabsTrigger value="snoozed-tabs">
             <Inbox className="h-4 w-4 mr-2" />
             Snoozed
-            <Kbd className="ml-2 bg-primary/20 text-primary border-primary/30">{settings.shortcuts?.["snoozed-items"]?.[0] || "I"}</Kbd>
+            <Kbd className="ml-2">{settings.shortcuts?.["snoozed-items"]?.[0] || "I"}</Kbd>
           </TabsTrigger>
           <TabsTrigger value="settings">
             <Settings className="h-4 w-4 mr-2" />
             Settings
-            <Kbd className="ml-2 bg-primary/20 text-primary border-primary/30">{settings.shortcuts?.["settings"]?.[0] || ","}</Kbd>
+            <Kbd className="ml-2">{settings.shortcuts?.["settings"]?.[0] || ","}</Kbd>
           </TabsTrigger>
         </TabsList>
 
