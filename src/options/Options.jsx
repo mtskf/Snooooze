@@ -314,16 +314,16 @@ export default function Options() {
 
                           if (appearance === "vivid" && VIVID_COLORS?.delete) {
                             const hex = getHex(VIVID_COLORS.delete);
-                            return `text-[${hex}] hover:text-[${hex}] hover:bg-[${hex}]/10`;
+                            return `bg-[${hex}] text-white hover:bg-[${hex}]/90`;
                           }
                           if (
                             appearance === "heatmap" &&
                             HEATMAP_COLORS?.delete
                           ) {
                             const hex = getHex(HEATMAP_COLORS.delete);
-                            return `text-[${hex}] hover:text-[${hex}] hover:bg-[${hex}]/10`;
+                            return `bg-[${hex}] text-white hover:bg-[${hex}]/90`;
                           }
-                          return "text-destructive hover:text-destructive hover:bg-destructive/10";
+                          return "bg-destructive text-destructive-foreground hover:bg-destructive/90";
                         })()
                       )}
                       onClick={() => {
