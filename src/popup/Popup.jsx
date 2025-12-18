@@ -93,14 +93,7 @@ export default function Popup() {
   const [isSnoozing, setIsSnoozing] = useState(false);
 
   useEffect(() => {
-    // Update tab count based on scope
-    updateTabCount();
-
-    // Listen for selection changes to update count dynamically
-    const tabListener = () => updateTabCount();
-    chrome.tabs.onHighlighted.addListener(tabListener);
-
-    // Fetch snoozed count
+    // Fetch settings and apply shortcuts/colors
     chrome.storage.local.get(["snoozedTabs", "settings"], (result) => {
       // Merge shortcuts
       const userShortcuts = (result.settings || {}).shortcuts || {};
@@ -131,24 +124,7 @@ export default function Popup() {
       setSnoozedItemsShortcut(finalShortcuts["snoozed-items"]?.[0] || "I");
       setSettingsShortcut(finalShortcuts["settings"]?.[0] || ",");
     });
-
-    return () => {
-      chrome.tabs.onHighlighted.removeListener(tabListener);
-    };
-  }, [scope]);
-
-  const updateTabCount = () => {
-    // Minimal implementation just to keep references valid, though state isn't used in UI currently
-    if (scope === "selected") {
-      chrome.tabs.query({ currentWindow: true, highlighted: true }, (tabs) => {
-        // setTabCount(tabs.length);
-      });
-    } else {
-      chrome.tabs.query({ currentWindow: true }, (tabs) => {
-        // setTabCount(tabs.length);
-      });
-    }
-  };
+  }, []);
 
   const handleSnooze = async (key) => {
     const time = await getTime(key);
