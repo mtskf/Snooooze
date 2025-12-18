@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trash2, AppWindow } from 'lucide-react';
 
-const SnoozedList = React.memo(({ snoozedTabs, onClearTab }) => {
+const SnoozedList = React.memo(({ snoozedTabs, onClearTab, onClearGroup }) => {
     const renderList = () => {
         const timestamps = Object.keys(snoozedTabs).sort();
         const days = [];
@@ -53,15 +53,39 @@ const SnoozedList = React.memo(({ snoozedTabs, onClearTab }) => {
                     <div className="grid gap-2">
                         {/* Render Window Groups */}
                         {Object.entries(dayGroups).map(([groupId, groupItems]) => (
-                            <Card key={groupId} className="p-3 bg-muted/30 border-dashed">
-                                <div className="flex items-center gap-2 mb-2 text-xs font-medium text-muted-foreground">
-                                    <AppWindow className="h-3 w-3" />
-                                    <span>Window Group ({groupItems.length} tabs)</span>
-                                    <span className="ml-auto">{formatTime(groupItems[0].popTime)}</span>
+                            <Card key={groupId} className="p-0 bg-card hover:bg-accent/5 transition-colors overflow-hidden">
+                                {/* Group Header - Styled like a Snoozed Tab Item */}
+                                <div className="flex flex-row items-center p-3 justify-between border-b border-border/40">
+                                     <div className="flex items-center gap-3">
+                                        {/* Icon Facade */}
+                                        <div className="w-4 h-4 ml-1 flex items-center justify-center bg-foreground text-background rounded-[2px]">
+                                            <AppWindow className="w-3 h-3" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium">Window Group</span>
+                                            <span className="text-xs text-muted-foreground flex gap-2">
+                                                <span>{groupItems.length} tabs</span>
+                                                <span>•</span>
+                                                <span>{formatTime(groupItems[0].popTime)}</span>
+                                            </span>
+                                        </div>
+                                     </div>
+                                     {onClearGroup && (
+                                         <Button
+                                             variant="ghost"
+                                             size="icon"
+                                             onClick={() => onClearGroup(groupId)}
+                                             className="hover:text-destructive text-muted-foreground transition-colors"
+                                         >
+                                             <Trash2 className="h-4 w-4" />
+                                         </Button>
+                                     )}
                                 </div>
-                                <div className="space-y-1 pl-2 border-l-2 border-muted">
+
+                                {/* Inner Tabs List */}
+                                <div className="space-y-1 p-3 pl-12 bg-muted/10">
                                     {groupItems.map((tab, idx) => (
-                                        <div key={`${tab.url}-${tab.creationTime}-${idx}`} className="flex flex-row items-center justify-between group">
+                                        <div key={`${tab.url}-${tab.creationTime}-${idx}`} className="flex flex-row items-center justify-between group py-1">
                                              <div className="flex items-center gap-2 overflow-hidden">
                                                 {tab.favicon && <img src={tab.favicon} className="w-3 h-3 grayscale opacity-70" alt="" />}
                                                 <a href={tab.url} target="_blank" rel="noreferrer" className="text-sm truncate hover:underline block max-w-[350px] text-muted-foreground hover:text-foreground transition-colors">

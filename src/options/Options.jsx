@@ -72,6 +72,12 @@ export default function Options() {
         chrome.runtime.sendMessage({ action: "removeSnoozedTab", tab: tab });
     };
 
+    const clearGroup = (groupId) => {
+        if (confirm("Are you sure you want to delete this window group?")) {
+            chrome.runtime.sendMessage({ action: "removeWindowGroup", groupId: groupId });
+        }
+    };
+
 
 
     const clearAll = () => {
@@ -258,7 +264,7 @@ export default function Options() {
                         </CardHeader>
 
                         <CardContent>
-                            <SnoozedList snoozedTabs={filteredTabs} onClearTab={clearTab} />
+                            <SnoozedList snoozedTabs={filteredTabs} onClearTab={clearTab} onClearGroup={clearGroup} />
                         </CardContent>
                     </Card>
                 </TabsContent>

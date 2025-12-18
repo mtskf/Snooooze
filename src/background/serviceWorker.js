@@ -58,6 +58,10 @@ async function handleMessage(request, sendResponse) {
                 await setSnoozedTabs({ tabCount: 0 });
                 sendResponse({ success: true });
                 break;
+            case "removeWindowGroup":
+                await removeWindowGroup(request.groupId);
+                sendResponse({ success: true });
+                break;
 
 
             default:
@@ -294,6 +298,34 @@ async function removeSnoozedTab(tab, snoozedTabs) {
     }
 
     snoozedTabs["tabCount"] = Math.max(0, snoozedTabs["tabCount"] - 1);
+}
+
+async function removeWindowGroup(groupId) {
+    const snoozedTabs = await getSnoozedTabs();
+    const timestamps = Object.keys(snoozedTabs);
+    let removedCount = 0;
+
+    for (const ts of timestamps) {
+        if (ts === 'tabCount') continue;
+        const tabs = snoozedTabs[ts];
+        if (!Array.isArray(tabs)) continue;
+
+        const originalLength = tabs.length;
+        // Filter out tabs with the matching groupId
+        const newTabs = tabs.filter(t => t.groupId !== groupId);
+
+        if (newTabs.length !== originalLength) {
+            removedCount += (originalLength - newTabs.length);
+            if (newTabs.length === 0) {
+                delete snoozedTabs[ts];
+            } else {
+                snoozedTabs[ts] = newTabs;
+            }
+        }
+    }
+
+    snoozedTabs["tabCount"] = Math.max(0, (snoozedTabs["tabCount"] || 0) - removedCount);
+    await setSnoozedTabs(snoozedTabs);
 }
 
 // Storage Wrappers
