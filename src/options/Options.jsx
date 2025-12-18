@@ -46,6 +46,7 @@ import { DEFAULT_SHORTCUTS } from "@/utils/constants";
 import TimeSettings from "./TimeSettings";
 import GlobalShortcutSettings from "./GlobalShortcutSettings";
 import SnoozeActionSettings from "./SnoozeActionSettings";
+import { Kbd } from "@/components/ui/kbd";
 export default function Options() {
   const [snoozedTabs, setSnoozedTabs] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -238,10 +239,12 @@ export default function Options() {
           <TabsTrigger value="snoozed-tabs">
             <Inbox className="h-4 w-4 mr-2" />
             Snoozed
+            <Kbd className="ml-2">{settings.shortcuts?.["snoozed-items"]?.[0] || "I"}</Kbd>
           </TabsTrigger>
           <TabsTrigger value="settings">
             <Settings className="h-4 w-4 mr-2" />
             Settings
+            <Kbd className="ml-2">{settings.shortcuts?.["settings"]?.[0] || ","}</Kbd>
           </TabsTrigger>
         </TabsList>
 

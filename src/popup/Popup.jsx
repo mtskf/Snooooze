@@ -340,15 +340,16 @@ export default function Popup() {
           <div className="flex gap-1 items-center">
             <Button
               variant="ghost"
-              className="text-muted-foreground h-8 px-2 flex items-center gap-1"
+              size="icon"
+              className="text-muted-foreground h-8 w-8"
               onClick={() => chrome.runtime.openOptionsPage()}
             >
               <Inbox className="h-4 w-4" />
-              <Kbd>{snoozedItemsShortcut}</Kbd>
             </Button>
             <Button
               variant="ghost"
-              className="text-muted-foreground h-8 px-2 flex items-center gap-1"
+              size="icon"
+              className="text-muted-foreground h-8 w-8"
               onClick={() =>
                 chrome.tabs.create({
                   url: chrome.runtime.getURL("options/index.html#settings"),
@@ -356,7 +357,6 @@ export default function Popup() {
               }
             >
               <Settings className="h-4 w-4" />
-              <Kbd>{settingsShortcut}</Kbd>
             </Button>
           </div>
         </div>
