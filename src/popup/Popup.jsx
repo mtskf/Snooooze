@@ -349,7 +349,7 @@ export default function Popup() {
               </Button>
               {snoozedCount > 0 && (
                 <span className="absolute -bottom-1 -right-1 flex h-3 min-w-3 px-0.5 items-center justify-center rounded-full bg-[#1077E2] text-[7px] text-white font-bold">
-                  {snoozedCount > 999 ? "999+" : snoozedCount}
+                  {snoozedCount > 99 ? "99+" : snoozedCount}
                 </span>
               )}
             </div>
