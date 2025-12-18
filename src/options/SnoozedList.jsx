@@ -222,6 +222,20 @@ const SnoozedList = React.memo(
 );
 
 function formatDay(date) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (target.getTime() === today.getTime()) {
+    return "Today";
+  }
+  if (target.getTime() === tomorrow.getTime()) {
+    return "Tomorrow";
+  }
+
   return date.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
