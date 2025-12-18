@@ -49,4 +49,5 @@ export const VIVID_COLORS = {
   "in-a-week": "text-[#4F8CFF]",      // Blue
   "in-a-month": "text-[#A78BFA]",     // Purple
   "pick-date": "text-[#22D3EE]",      // Cyan
+  "delete": "text-[#F43F5E]",         // Rose
 };
