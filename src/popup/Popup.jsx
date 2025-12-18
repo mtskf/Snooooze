@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import logo from '../assets/logo.svg';
 import { Button } from '@/components/ui/button';
+import { Kbd } from '@/components/ui/kbd';
 
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { getTime } from '@/utils/timeUtils';
-import { Clock, Moon, Sun, Armchair, Briefcase, CalendarDays, Monitor, AppWindow, Settings, Album, Inbox } from 'lucide-react';
+import { Clock, Moon, Sun, Armchair, Briefcase, CalendarDays, CalendarClock, CalendarRange, Monitor, AppWindow, Settings, Album, Inbox, Archive } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 import { DEFAULT_SHORTCUTS } from '@/utils/constants';
@@ -15,19 +16,20 @@ import { DEFAULT_SHORTCUTS } from '@/utils/constants';
 export default function Popup() {
     const [date, setDate] = useState();
     const [items, setItems] = useState([
-         { id: 'later-today', label: 'Later today', icon: Clock, shortcuts: [], color: 'text-amber-400' },
-         { id: 'this-evening', label: 'This evening', icon: Moon, shortcuts: [], color: 'text-purple-400' },
-         { id: 'tomorrow', label: 'Tomorrow', icon: Sun, shortcuts: [], color: 'text-amber-400' },
-         { id: 'this-weekend', label: 'This weekend', icon: Armchair, shortcuts: [], color: 'text-green-400' },
-         { id: 'next-monday', label: 'Next Monday', icon: Briefcase, shortcuts: [], color: 'text-amber-400' },
-         { id: 'in-a-week', label: 'In a week', icon: Briefcase, shortcuts: [], color: 'text-blue-400' },
-         { id: 'in-a-month', label: 'In a month', icon: CalendarDays, shortcuts: [], color: 'text-purple-400' },
+         { id: 'later-today', label: 'Later today', icon: Clock, shortcuts: [], color: 'text-sky-300' },
+         { id: 'this-evening', label: 'This evening', icon: Moon, shortcuts: [], color: 'text-sky-400' },
+         { id: 'tomorrow', label: 'Tomorrow', icon: Sun, shortcuts: [], color: 'text-blue-400' },
+         { id: 'this-weekend', label: 'This weekend', icon: Armchair, shortcuts: [], color: 'text-blue-500' },
+         { id: 'next-monday', label: 'Next Monday', icon: Briefcase, shortcuts: [], color: 'text-blue-600' },
+         { id: 'in-a-week', label: 'In a week', icon: CalendarRange, shortcuts: [], color: 'text-indigo-500' },
+         { id: 'in-a-month', label: 'In a month', icon: Archive, shortcuts: [], color: 'text-indigo-600' },
     ]);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [scope, setScope] = useState('selected'); // 'selected' | 'window'
     const [tabCount, setTabCount] = useState(0);
     const [snoozedCount, setSnoozedCount] = useState(0);
     const [pickDateShortcut, setPickDateShortcut] = useState('P');
+    const [focusedIndex, setFocusedIndex] = useState(-1); // -1 = no focus, 0-6 = items, 7 = pick date
 
     useEffect(() => {
         // Update tab count based on scope
@@ -73,6 +75,38 @@ export default function Popup() {
             if (e.target.tagName === 'INPUT') return; // Don't trigger when typing
 
             let key = e.key.toUpperCase();
+            const totalOptions = items.length + 1; // items + Pick Date
+
+            // Arrow key navigation
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                setScope('selected');
+                return;
+            }
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                setScope('window');
+                return;
+            }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setFocusedIndex(prev => (prev + 1) % totalOptions);
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setFocusedIndex(prev => (prev - 1 + totalOptions) % totalOptions);
+                return;
+            }
+            if (e.key === 'Enter' && focusedIndex >= 0) {
+                e.preventDefault();
+                if (focusedIndex < items.length) {
+                    handleSnooze(items[focusedIndex].id);
+                } else {
+                    setIsCalendarOpen(true);
+                }
+                return;
+            }
 
             // Shift handling for scope
             if (e.key === 'Shift') {
@@ -205,15 +239,15 @@ export default function Popup() {
 
     return (
         <div className="w-[350px] bg-background text-foreground min-h-[500px] flex flex-col">
-            <div className="p-4 pt-6">
-                <div className="flex justify-between items-center mb-4">
+            <div className="p-6 space-y-4">
+                <div className="flex justify-between items-center">
                     <img src={logo} alt="Snooze" className="h-6" />
                     <div className="flex gap-1">
                         <Button className="bg-secondary text-muted-foreground border border-border/50 h-8 px-3 hover:bg-secondary/80 shadow-none flex items-center gap-2" onClick={() => chrome.runtime.openOptionsPage()}>
                             <Inbox className="h-4 w-4" />
 
                             {snoozedCount > 0 && (
-                                <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-primary text-[9px] text-primary-foreground font-bold">
+                                <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#1077E2] text-[9px] text-white font-bold">
                                     {snoozedCount > 999 ? '999+' : snoozedCount}
                                 </span>
                             )}
@@ -225,18 +259,23 @@ export default function Popup() {
                 </div>
 
                 {/* Scope Selection via RadioGroup */}
-                <RadioGroup value={scope} onValueChange={setScope} className="grid grid-cols-2 gap-3 mb-4">
+                <RadioGroup value={scope} onValueChange={setScope} className="grid grid-cols-2 gap-3">
                     <label
                         className={cn(
                             "cursor-pointer rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 border-2 transition-all hover:bg-secondary",
                             scope === 'selected' ? "border-primary bg-accent/10" : "border-transparent bg-secondary/50"
                         )}
                     >
-                        <div className="rounded-md bg-gradient-to-br from-pink-500 to-rose-500 p-2 text-white shadow-sm">
+                        <div className={cn(
+                            "rounded-md p-2 text-white shadow-sm transition-colors",
+                            scope === 'selected'
+                                ? "bg-gradient-to-br from-blue-600 to-cyan-500"
+                                : "bg-gradient-to-br from-slate-600 to-zinc-500 opacity-50 grayscale"
+                        )}>
                             <Album className="h-5 w-5" />
                         </div>
                         <span className="font-medium">Selected tabs</span>
-                        <span className="text-[10px] text-muted-foreground">Default</span>
+                        <Kbd>◀︎</Kbd>
                         <RadioGroupItem value="selected" id="scope-selected" className="sr-only" />
                     </label>
 
@@ -246,11 +285,20 @@ export default function Popup() {
                             scope === 'window' ? "border-primary bg-accent/10" : "border-transparent bg-secondary/50"
                         )}
                     >
-                         <div className="rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 p-2 text-white shadow-sm">
+                         <div className={cn(
+                            "rounded-md p-2 text-white shadow-sm transition-colors",
+                            scope === 'window'
+                                ? "bg-gradient-to-br from-blue-600 to-cyan-500"
+                                : "bg-gradient-to-br from-slate-600 to-zinc-500 opacity-50 grayscale"
+                        )}>
                             <AppWindow className="h-5 w-5" />
                         </div>
                         <span className="font-medium">Window</span>
-                        <span className="text-[10px] text-muted-foreground">Hold Shift</span>
+                        <div className="flex gap-1 items-center">
+                            <Kbd>▶︎</Kbd>
+                            <span className="text-[10px] text-muted-foreground">or</span>
+                            <Kbd>Hold ⇧</Kbd>
+                        </div>
                         <RadioGroupItem value="window" id="scope-window" className="sr-only" />
                     </label>
                 </RadioGroup>
@@ -259,11 +307,14 @@ export default function Popup() {
 
 
                 <div className="space-y-1">
-                    {items.map((item) => {
+                    {items.map((item, index) => {
                         return (
                          <button
                             key={item.id}
-                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50 transition-colors group text-left"
+                            className={cn(
+                                "w-full flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50 transition-colors group text-left",
+                                focusedIndex === index && "bg-secondary/70 ring-1 ring-primary"
+                            )}
                             onClick={() => handleSnooze(item.id)}
                         >
                             <div className="flex items-center gap-3">
@@ -272,9 +323,9 @@ export default function Popup() {
                             </div>
                             <div className="flex gap-1">
                                 {item.shortcuts.map((key) => (
-                                    <span key={key} className="bg-secondary text-muted-foreground text-xs font-mono font-medium w-5 h-5 flex items-center justify-center rounded border border-border/50">
+                                    <Kbd key={key}>
                                         {key}
-                                    </span>
+                                    </Kbd>
                                 ))}
                             </div>
                         </button>
@@ -283,16 +334,19 @@ export default function Popup() {
                 {/* Pick Date */}
                 <button
                     onClick={() => setIsCalendarOpen(true)}
-                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50 transition-colors group text-left"
+                    className={cn(
+                        "w-full flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50 transition-colors group text-left",
+                        focusedIndex === items.length && "bg-secondary/70 ring-1 ring-primary"
+                    )}
                 >
                     <div className="flex items-center gap-3">
-                        <CalendarDays className={cn("h-5 w-5 text-indigo-400")} />
+                        <CalendarDays className={cn("h-5 w-5 text-[#6540E9]")} />
                         <span className="font-medium">Pick Date</span>
                     </div>
                     <div className="flex gap-1">
-                        <span className="bg-secondary text-muted-foreground text-xs font-mono font-medium w-5 h-5 flex items-center justify-center rounded border border-border/50">
+                        <Kbd>
                             {pickDateShortcut}
-                        </span>
+                        </Kbd>
                     </div>
                 </button>
 
@@ -327,6 +381,11 @@ export default function Popup() {
                     </div>
                 )}
             </div>
+                {/* Navigation hint */}
+                <div className="text-center text-[9px] text-muted-foreground flex items-center justify-center gap-1">
+                    <Kbd>▲</Kbd><Kbd>▼</Kbd> to navigate
+                </div>
+
             </div>
 
 

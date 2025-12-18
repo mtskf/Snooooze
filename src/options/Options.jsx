@@ -72,6 +72,16 @@ export default function Options() {
         chrome.runtime.sendMessage({ action: "removeSnoozedTab", tab: tab });
     };
 
+    const clearGroup = (groupId) => {
+        if (confirm("Are you sure you want to delete this window group?")) {
+            chrome.runtime.sendMessage({ action: "removeWindowGroup", groupId: groupId });
+        }
+    };
+
+    const restoreGroup = (groupId) => {
+        chrome.runtime.sendMessage({ action: "restoreWindowGroup", groupId: groupId });
+    };
+
 
 
     const clearAll = () => {
@@ -196,7 +206,7 @@ export default function Options() {
                 <TabsContent value="snoozed-tabs">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Snoozed tabs</CardTitle>
+                            <CardTitle>Snoozed Items</CardTitle>
                             <div className="flex items-center justify-between pt-4">
                                 <div className="relative w-[280px]">
                                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -258,7 +268,12 @@ export default function Options() {
                         </CardHeader>
 
                         <CardContent>
-                            <SnoozedList snoozedTabs={filteredTabs} onClearTab={clearTab} />
+                            <SnoozedList
+                                snoozedTabs={filteredTabs}
+                                onClearTab={clearTab}
+                                onClearGroup={clearGroup}
+                                onRestoreGroup={restoreGroup}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -285,16 +300,7 @@ export default function Options() {
                                 </div>
 
 
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <label className="text-sm font-medium">Open in New Tab</label>
-                                    <p className="text-xs text-muted-foreground">Open snoozed tabs in a new tab instead of window.</p>
-                                </div>
-                                <Switch
-                                    checked={settings['open-new-tab'] === 'true'}
-                                    onCheckedChange={(c) => updateSetting('open-new-tab', c ? 'true' : 'false')}
-                                />
-                            </div>
+
                         </CardContent>
                     </Card>
 

@@ -58,6 +58,14 @@ async function handleMessage(request, sendResponse) {
                 await setSnoozedTabs({ tabCount: 0 });
                 sendResponse({ success: true });
                 break;
+            case "removeWindowGroup":
+                await removeWindowGroup(request.groupId);
+                sendResponse({ success: true });
+                break;
+            case "restoreWindowGroup":
+                await restoreWindowGroup(request.groupId);
+                sendResponse({ success: true });
+                break;
 
 
             default:
@@ -87,7 +95,6 @@ async function initStorage() {
             "weekend-begin": 6,
             "later-today": 3,
             "someday": 3,
-            "open-new-tab": "true",
             "badge": "true"
         };
         await setSettings(settings);
@@ -154,7 +161,6 @@ async function popCheck() {
 
 async function restoreTabs(tabs, timesToRemove) {
     var settings = await getSettings(); // Retrieve latest settings
-    var openInNewTab = settings["open-new-tab"] === "true" || settings["open-new-tab"] === true;
 
     // Group by groupId
     const groups = {};
@@ -171,7 +177,7 @@ async function restoreTabs(tabs, timesToRemove) {
         }
     });
 
-    // Restore Groups (Always in new window per plan)
+    // Restore Groups (Always in new window)
     for (const groupId in groups) {
         const groupTabs = groups[groupId];
         if (groupTabs.length > 0) {
@@ -180,14 +186,16 @@ async function restoreTabs(tabs, timesToRemove) {
         }
     }
 
-    // Restore Ungrouped Tabs (Follow setting)
+    // Restore Ungrouped Tabs (Always in last focused window)
     if (ungrouped.length > 0) {
-        if (openInNewTab) {
-                const currentWindow = await chrome.windows.getCurrent();
-                await createTabsInWindow(ungrouped, currentWindow);
-        } else {
-                const newWindow = await chrome.windows.create({});
-                await createTabsInWindow(ungrouped, newWindow);
+        try {
+            // Use getLastFocused for Service Worker compatibility
+            const currentWindow = await chrome.windows.getLastFocused();
+            await createTabsInWindow(ungrouped, currentWindow);
+        } catch (e) {
+            // Fallback if no window is focused/available
+            const newWindow = await chrome.windows.create({});
+            await createTabsInWindow(ungrouped, newWindow);
         }
     }
 
@@ -253,6 +261,33 @@ async function addSnoozedTab(tab, popTime, openInNewWindow, groupId = null) {
     return storageLock;
 }
 
+
+
+async function restoreWindowGroup(groupId) {
+    const snoozedTabs = await getSnoozedTabs();
+    const timestamps = Object.keys(snoozedTabs);
+    let groupTabs = [];
+
+    // 1. Gather Tabs
+    for (const ts of timestamps) {
+        if (ts === 'tabCount') continue;
+        const tabs = snoozedTabs[ts];
+        if (!Array.isArray(tabs)) continue;
+
+        const matchingTabs = tabs.filter(t => t.groupId === groupId);
+        groupTabs = groupTabs.concat(matchingTabs);
+    }
+
+    if (groupTabs.length === 0) return;
+
+    // 2. Open in New Window
+    const newWindow = await chrome.windows.create({});
+    await createTabsInWindow(groupTabs, newWindow);
+
+    // 3. Remove from storage
+    await removeWindowGroup(groupId);
+}
+
 async function removeSnoozedTabWrapper(tab) {
     const snoozedTabs = await getSnoozedTabs();
     await removeSnoozedTab(tab, snoozedTabs);
@@ -294,6 +329,34 @@ async function removeSnoozedTab(tab, snoozedTabs) {
     }
 
     snoozedTabs["tabCount"] = Math.max(0, snoozedTabs["tabCount"] - 1);
+}
+
+async function removeWindowGroup(groupId) {
+    const snoozedTabs = await getSnoozedTabs();
+    const timestamps = Object.keys(snoozedTabs);
+    let removedCount = 0;
+
+    for (const ts of timestamps) {
+        if (ts === 'tabCount') continue;
+        const tabs = snoozedTabs[ts];
+        if (!Array.isArray(tabs)) continue;
+
+        const originalLength = tabs.length;
+        // Filter out tabs with the matching groupId
+        const newTabs = tabs.filter(t => t.groupId !== groupId);
+
+        if (newTabs.length !== originalLength) {
+            removedCount += (originalLength - newTabs.length);
+            if (newTabs.length === 0) {
+                delete snoozedTabs[ts];
+            } else {
+                snoozedTabs[ts] = newTabs;
+            }
+        }
+    }
+
+    snoozedTabs["tabCount"] = Math.max(0, (snoozedTabs["tabCount"] || 0) - removedCount);
+    await setSnoozedTabs(snoozedTabs);
 }
 
 // Storage Wrappers
