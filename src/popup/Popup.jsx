@@ -297,7 +297,7 @@ export default function Popup() {
                         <div className="flex gap-1 items-center">
                             <Kbd>▶︎</Kbd>
                             <span className="text-[10px] text-muted-foreground">or</span>
-                            <Kbd>Shift</Kbd>
+                            <Kbd>Hold ⇧</Kbd>
                         </div>
                         <RadioGroupItem value="window" id="scope-window" className="sr-only" />
                     </label>
