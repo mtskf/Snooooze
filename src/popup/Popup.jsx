@@ -214,7 +214,7 @@ export default function Popup() {
                             <Inbox className="h-4 w-4" />
 
                             {snoozedCount > 0 && (
-                                <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-primary text-[9px] text-primary-foreground font-bold">
+                                <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#1077E2] text-[9px] text-white font-bold">
                                     {snoozedCount > 999 ? '999+' : snoozedCount}
                                 </span>
                             )}
