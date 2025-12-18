@@ -18,12 +18,12 @@ const SnoozedList = React.memo(
     const deleteHoverStyle = (() => {
       const getHex = (cls) => cls?.replace("text-[", "").replace("]", "");
 
-      let colorClass = "hover:text-destructive";
+      let colorClass = "hover:!text-destructive";
 
       if (appearance === "vivid" && VIVID_COLORS?.delete) {
-        colorClass = `hover:text-[${getHex(VIVID_COLORS.delete)}]`;
+        colorClass = `hover:!text-[${getHex(VIVID_COLORS.delete)}]`;
       } else if (appearance === "heatmap" && HEATMAP_COLORS?.delete) {
-        colorClass = `hover:text-[${getHex(HEATMAP_COLORS.delete)}]`;
+        colorClass = `hover:!text-[${getHex(HEATMAP_COLORS.delete)}]`;
       }
       return `${colorClass} hover:bg-transparent`;
     })();
