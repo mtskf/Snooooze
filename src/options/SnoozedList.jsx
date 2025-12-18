@@ -75,7 +75,7 @@ const SnoozedList = React.memo(({ snoozedTabs, onClearTab, onClearGroup }) => {
                                              variant="ghost"
                                              size="icon"
                                              onClick={() => onClearGroup(groupId)}
-                                             className="hover:text-destructive text-muted-foreground transition-colors"
+                                             className="h-8 w-8 hover:text-destructive text-muted-foreground transition-colors"
                                          >
                                              <Trash2 className="h-4 w-4" />
                                          </Button>
@@ -83,7 +83,7 @@ const SnoozedList = React.memo(({ snoozedTabs, onClearTab, onClearGroup }) => {
                                 </div>
 
                                 {/* Inner Tabs List */}
-                                <div className="space-y-1 p-3 pl-12 bg-muted/10">
+                                <div className="space-y-1 p-3 pt-0 pl-12 bg-muted/10">
                                     {groupItems.map((tab, idx) => (
                                         <div key={`${tab.url}-${tab.creationTime}-${idx}`} className="flex flex-row items-center justify-between group py-1">
                                              <div className="flex items-center gap-2 overflow-hidden">
@@ -92,7 +92,7 @@ const SnoozedList = React.memo(({ snoozedTabs, onClearTab, onClearGroup }) => {
                                                     {tab.title}
                                                 </a>
                                              </div>
-                                             <Button variant="ghost" size="icon" onClick={() => onClearTab(tab)} className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive text-muted-foreground">
+                                             <Button variant="ghost" size="icon" onClick={() => onClearTab(tab)} className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive text-muted-foreground">
                                                  <Trash2 className="h-3 w-3" />
                                              </Button>
                                         </div>
