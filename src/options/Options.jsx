@@ -346,9 +346,9 @@ export default function Options() {
             <CardContent>
               <SnoozedList
                 snoozedTabs={filteredTabs}
-                onClearTab={handleClearTab}
-                onClearGroup={handleClearGroup}
-                onRestoreGroup={handleRestoreGroup}
+                onClearTab={clearTab}
+                onClearGroup={clearGroup}
+                onRestoreGroup={restoreGroup}
                 appearance={settings.appearance || "default"}
               />
             </CardContent>
