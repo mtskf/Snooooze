@@ -325,14 +325,7 @@ export default function Options() {
                         }
                         return {};
                       })()}
-                      onClick={() => {
-                        if (confirm("Clear all snoozed tabs?")) {
-                          chrome.runtime.sendMessage({
-                            action: "clearAllSnoozed",
-                          });
-                          setSnoozedTabs({});
-                        }
-                      }}
+                      onClick={clearAll}
                     >
                       <Trash2 className="mr-2 h-3 w-3" />
                       Delete All
