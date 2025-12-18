@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, AppWindow } from "lucide-react";
-import { VIVID_COLORS } from "@/utils/constants";
+import { VIVID_COLORS, HEATMAP_COLORS } from "@/utils/constants";
 
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,8 @@ const SnoozedList = React.memo(
     const deleteHoverStyle =
       appearance === "vivid"
         ? `hover:text-[${VIVID_COLORS.delete.replace("text-[", "").replace("]", "")}]`
+        : appearance === "heatmap"
+        ? `hover:text-[${HEATMAP_COLORS.delete.replace("text-[", "").replace("]", "")}]`
         : "hover:text-destructive";
     const renderList = () => {
       const timestamps = Object.keys(snoozedTabs).sort();

@@ -42,7 +42,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SnoozedList from "./SnoozedList";
-import { DEFAULT_SHORTCUTS, VIVID_COLORS } from "@/utils/constants";
+import {
+  DEFAULT_SHORTCUTS,
+  VIVID_COLORS,
+  HEATMAP_COLORS,
+} from "@/utils/constants";
 import TimeSettings from "./TimeSettings";
 import GlobalShortcutSettings from "./GlobalShortcutSettings";
 import SnoozeActionSettings from "./SnoozeActionSettings";
@@ -305,6 +309,8 @@ export default function Options() {
                         "h-7 text-[10px]",
                         settings.appearance === "vivid"
                           ? `text-[${VIVID_COLORS.delete.replace("text-[", "").replace("]", "")}] hover:text-[${VIVID_COLORS.delete.replace("text-[", "").replace("]", "")}] hover:bg-[${VIVID_COLORS.delete.replace("text-[", "").replace("]", "")}]/10`
+                          : settings.appearance === "heatmap"
+                          ? `text-[${HEATMAP_COLORS.delete.replace("text-[", "").replace("]", "")}] hover:text-[${HEATMAP_COLORS.delete.replace("text-[", "").replace("]", "")}] hover:bg-[${HEATMAP_COLORS.delete.replace("text-[", "").replace("]", "")}]/10`
                           : "text-destructive hover:text-destructive hover:bg-destructive/10"
                       )}
                       onClick={() => {

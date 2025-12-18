@@ -4,6 +4,7 @@ import {
   SNOOZE_ACTIONS,
   DEFAULT_COLORS,
   VIVID_COLORS,
+  HEATMAP_COLORS,
 } from "@/utils/constants";
 import {
   Clock,
@@ -38,7 +39,9 @@ export default function ShortcutEditor({
   onUpdate,
   appearance = "default",
 }) {
-  const colorScheme = appearance === "vivid" ? VIVID_COLORS : DEFAULT_COLORS;
+  let colorScheme = DEFAULT_COLORS;
+  if (appearance === "vivid") colorScheme = VIVID_COLORS;
+  if (appearance === "heatmap") colorScheme = HEATMAP_COLORS;
 
   const handleChange = (actionId, value) => {
     // Validation: Single char only, uppercase
