@@ -383,6 +383,10 @@ export default function Popup() {
             </div>
             </div>
 
+            {/* Navigation hint */}
+            <div className="p-2 text-center text-[9px] text-muted-foreground flex items-center justify-center gap-1">
+                <Kbd>▲</Kbd><Kbd>▼</Kbd> to navigate
+            </div>
 
         </div>
     );
