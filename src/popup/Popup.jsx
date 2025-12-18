@@ -167,7 +167,7 @@ export default function Popup() {
         setFocusedIndex((prev) => (prev - 1 + totalOptions) % totalOptions);
         return;
       }
-      if (e.key === "Enter" && focusedIndex >= 0) {
+      if ((e.key === "Enter" || e.key === " ") && focusedIndex >= 0) {
         e.preventDefault();
         if (focusedIndex < items.length) {
           handleSnooze(items[focusedIndex].id);
@@ -245,7 +245,7 @@ export default function Popup() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [items]); // Remove scope dependency since we use e.shiftKey directly
+  }, [items, focusedIndex]); // Add focusedIndex to fix stale closure
 
   const updateTabCount = () => {
     if (scope === "selected") {
