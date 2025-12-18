@@ -303,29 +303,28 @@ export default function Options() {
 
                   {snoozedTabs.tabCount > 0 && (
                     <Button
-                      variant="ghost"
-                      size="xs"
                       className={cn(
                         "h-7 text-[10px]",
-                        (() => {
-                          const appearance = settings.appearance;
-                          const getHex = (cls) =>
-                            cls?.replace("text-[", "").replace("]", "");
-
-                          if (appearance === "vivid" && VIVID_COLORS?.delete) {
-                            const hex = getHex(VIVID_COLORS.delete);
-                            return `bg-[${hex}] text-white hover:bg-[${hex}]/90`;
-                          }
-                          if (
-                            appearance === "heatmap" &&
-                            HEATMAP_COLORS?.delete
-                          ) {
-                            const hex = getHex(HEATMAP_COLORS.delete);
-                            return `bg-[${hex}] text-white hover:bg-[${hex}]/90`;
-                          }
-                          return "bg-destructive text-destructive-foreground hover:bg-destructive/90";
-                        })()
+                        (!settings.appearance ||
+                          settings.appearance === "default" ||
+                          settings.appearance === "neo-carbon") &&
+                          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+                        (settings.appearance === "vivid" ||
+                          settings.appearance === "heatmap") &&
+                          "text-white hover:opacity-90"
                       )}
+                      style={(() => {
+                        const appearance = settings.appearance;
+                        const getHex = (cls) =>
+                          cls?.replace("text-[", "").replace("]", "");
+                        if (appearance === "vivid" && VIVID_COLORS?.delete) {
+                          return { backgroundColor: getHex(VIVID_COLORS.delete) };
+                        }
+                        if (appearance === "heatmap" && HEATMAP_COLORS?.delete) {
+                          return { backgroundColor: getHex(HEATMAP_COLORS.delete) };
+                        }
+                        return {};
+                      })()}
                       onClick={() => {
                         if (confirm("Clear all snoozed tabs?")) {
                           chrome.runtime.sendMessage({
