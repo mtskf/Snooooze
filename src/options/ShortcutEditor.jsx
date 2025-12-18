@@ -99,21 +99,8 @@ export default function ShortcutEditor({ shortcuts, onUpdate }) {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Snooze Actions */}
-      <div className="grid grid-cols-1 gap-2">
-        {SNOOZE_ACTIONS.map(renderActionRow)}
-      </div>
-
-      {/* Other Shortcuts */}
-      <div>
-        <span className="text-xs text-muted-foreground font-medium block mb-2 mt-4">
-          Other Shortcuts
-        </span>
-        <div className="grid grid-cols-1 gap-2">
-          {OTHER_SHORTCUTS.map(renderActionRow)}
-        </div>
-      </div>
+    <div className="grid grid-cols-1 gap-2">
+      {SNOOZE_ACTIONS.map(renderActionRow)}
     </div>
   );
 }
