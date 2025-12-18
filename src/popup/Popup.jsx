@@ -287,7 +287,7 @@ export default function Popup() {
                     className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50 transition-colors group text-left"
                 >
                     <div className="flex items-center gap-3">
-                        <CalendarDays className={cn("h-5 w-5 text-primary")} />
+                        <CalendarDays className={cn("h-5 w-5 text-violet-500")} />
                         <span className="font-medium">Pick Date</span>
                     </div>
                     <div className="flex gap-1">
