@@ -348,7 +348,7 @@ export default function Options() {
                 />
               </div>
 
-              <div className="space-y-8 pt-6">
+              <div className="space-y-4 pt-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <label className="text-sm font-medium">Appearance</label>

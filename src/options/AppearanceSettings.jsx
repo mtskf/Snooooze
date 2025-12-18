@@ -10,61 +10,56 @@ export default function AppearanceSettings({ settings, updateSetting }) {
   const current = settings.appearance || "default";
 
   return (
-    <div className="space-y-3">
-      <span className="text-xs text-muted-foreground font-medium block mb-2 mt-4">
-        Appearance
-      </span>
-      <div className="grid grid-cols-2 gap-3">
-        {/* Default */}
-        <button
-          onClick={() => updateSetting("appearance", "default")}
-          className={cn(
-            "rounded-lg p-3 border-2 transition-all text-left",
-            current === "default"
-              ? "border-primary bg-card"
-              : "border-border bg-secondary hover:border-muted-foreground"
-          )}
-        >
-          <div className="text-sm font-medium mb-2">Default</div>
-          <div className="flex gap-1">
-            {COLOR_SWATCHES.default.map((color, i) => (
-              <div
-                key={i}
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
-          <div className="text-xs text-muted-foreground mt-2">
-            Monochromatic gradient
-          </div>
-        </button>
+    <div className="grid grid-cols-2 gap-3">
+      {/* Default */}
+      <button
+        onClick={() => updateSetting("appearance", "default")}
+        className={cn(
+          "rounded-lg p-3 border-2 transition-all text-left",
+          current === "default"
+            ? "border-primary bg-card"
+            : "border-border bg-secondary hover:border-muted-foreground"
+        )}
+      >
+        <div className="text-sm font-medium mb-2">Default</div>
+        <div className="flex gap-1">
+          {COLOR_SWATCHES.default.map((color, i) => (
+            <div
+              key={i}
+              className="w-4 h-4 rounded-full"
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+        <div className="text-xs text-muted-foreground mt-2">
+          Monochromatic gradient
+        </div>
+      </button>
 
-        {/* Vivid */}
-        <button
-          onClick={() => updateSetting("appearance", "vivid")}
-          className={cn(
-            "rounded-lg p-3 border-2 transition-all text-left",
-            current === "vivid"
-              ? "border-primary bg-card"
-              : "border-border bg-secondary hover:border-muted-foreground"
-          )}
-        >
-          <div className="text-sm font-medium mb-2">Vivid</div>
-          <div className="flex gap-1">
-            {COLOR_SWATCHES.vivid.map((color, i) => (
-              <div
-                key={i}
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
-          <div className="text-xs text-muted-foreground mt-2">
-            Semantic colors
-          </div>
-        </button>
-      </div>
+      {/* Vivid */}
+      <button
+        onClick={() => updateSetting("appearance", "vivid")}
+        className={cn(
+          "rounded-lg p-3 border-2 transition-all text-left",
+          current === "vivid"
+            ? "border-primary bg-card"
+            : "border-border bg-secondary hover:border-muted-foreground"
+        )}
+      >
+        <div className="text-sm font-medium mb-2">Vivid</div>
+        <div className="flex gap-1">
+          {COLOR_SWATCHES.vivid.map((color, i) => (
+            <div
+              key={i}
+              className="w-4 h-4 rounded-full"
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+        <div className="text-xs text-muted-foreground mt-2">
+          Semantic colors
+        </div>
+      </button>
     </div>
   );
 }
