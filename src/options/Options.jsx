@@ -206,7 +206,7 @@ export default function Options() {
                 <TabsContent value="snoozed-tabs">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Snoozed tabs</CardTitle>
+                            <CardTitle>Snoozed Items</CardTitle>
                             <div className="flex items-center justify-between pt-4">
                                 <div className="relative w-[280px]">
                                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
