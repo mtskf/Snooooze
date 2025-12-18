@@ -259,6 +259,7 @@ export default function Options() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-8 pr-8 h-9 text-xs"
+                    autoFocus
                   />
                   {searchQuery && (
                     <button
