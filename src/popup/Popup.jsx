@@ -275,7 +275,7 @@ export default function Popup() {
                             <Album className="h-5 w-5" />
                         </div>
                         <span className="font-medium">Selected tabs</span>
-                        <Kbd>←</Kbd>
+                        <Kbd>◀︎</Kbd>
                         <RadioGroupItem value="selected" id="scope-selected" className="sr-only" />
                     </label>
 
@@ -295,7 +295,7 @@ export default function Popup() {
                         </div>
                         <span className="font-medium">Window</span>
                         <div className="flex gap-1 items-center">
-                            <Kbd>→</Kbd>
+                            <Kbd>▶︎</Kbd>
                             <span className="text-[10px] text-muted-foreground">or</span>
                             <Kbd>Shift</Kbd>
                         </div>
