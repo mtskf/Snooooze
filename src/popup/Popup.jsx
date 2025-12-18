@@ -338,14 +338,13 @@ export default function Popup() {
         <div className="flex justify-between items-center">
           <img src={logo} alt="Snooze" className="h-6" />
           <div className="flex gap-1 items-center">
-            <Kbd>{snoozedItemsShortcut}</Kbd>
             <div className="relative">
               <Button
-                size="icon"
-                className="bg-secondary text-muted-foreground border border-border/50 h-8 w-8 hover:bg-secondary/80 shadow-none"
+                className="bg-secondary text-muted-foreground border border-border/50 h-8 px-2 hover:bg-secondary/80 shadow-none flex items-center gap-1"
                 onClick={() => chrome.runtime.openOptionsPage()}
               >
                 <Inbox className="h-4 w-4" />
+                <Kbd>{snoozedItemsShortcut}</Kbd>
               </Button>
               {snoozedCount > 0 && (
                 <span className="absolute -bottom-1 -right-1 flex h-3 min-w-3 px-0.5 items-center justify-center rounded-full bg-[#1077E2] text-[7px] text-white font-bold">
@@ -353,10 +352,8 @@ export default function Popup() {
                 </span>
               )}
             </div>
-            <Kbd>{settingsShortcut}</Kbd>
             <Button
-              size="icon"
-              className="bg-secondary text-muted-foreground border border-border/50 h-8 w-8 hover:bg-secondary/80 shadow-none"
+              className="bg-secondary text-muted-foreground border border-border/50 h-8 px-2 hover:bg-secondary/80 shadow-none flex items-center gap-1"
               onClick={() =>
                 chrome.tabs.create({
                   url: chrome.runtime.getURL("options/index.html#settings"),
@@ -364,6 +361,7 @@ export default function Popup() {
               }
             >
               <Settings className="h-4 w-4" />
+              <Kbd>{settingsShortcut}</Kbd>
             </Button>
           </div>
         </div>
