@@ -315,18 +315,19 @@ export default function Popup() {
         <div className="flex justify-between items-center">
           <img src={logo} alt="Snooze" className="h-6" />
           <div className="flex gap-1">
-            <Button
-              className="bg-secondary text-muted-foreground border border-border/50 h-8 px-3 hover:bg-secondary/80 shadow-none flex items-center gap-2"
-              onClick={() => chrome.runtime.openOptionsPage()}
-            >
-              <Inbox className="h-4 w-4" />
-
+            <div className="relative">
+              <Button
+                className="bg-secondary text-muted-foreground border border-border/50 h-8 px-3 hover:bg-secondary/80 shadow-none flex items-center gap-2"
+                onClick={() => chrome.runtime.openOptionsPage()}
+              >
+                <Inbox className="h-4 w-4" />
+              </Button>
               {snoozedCount > 0 && (
-                <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#1077E2] text-[9px] text-white font-bold">
+                <span className="absolute -bottom-1 -right-1 flex h-3 min-w-3 px-0.5 items-center justify-center rounded-full bg-[#1077E2] text-[7px] text-white font-bold">
                   {snoozedCount > 999 ? "999+" : snoozedCount}
                 </span>
               )}
-            </Button>
+            </div>
             <Button
               size="icon"
               className="bg-secondary text-muted-foreground border border-border/50 h-8 w-8 hover:bg-secondary/80 shadow-none"
