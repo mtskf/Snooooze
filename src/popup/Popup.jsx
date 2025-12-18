@@ -233,7 +233,12 @@ export default function Popup() {
                             scope === 'selected' ? "border-primary bg-accent/10" : "border-transparent bg-secondary/50"
                         )}
                     >
-                        <div className="rounded-md bg-gradient-to-br from-blue-600 to-cyan-500 p-2 text-white shadow-sm">
+                        <div className={cn(
+                            "rounded-md p-2 text-white shadow-sm transition-colors",
+                            scope === 'selected'
+                                ? "bg-gradient-to-br from-blue-600 to-cyan-500"
+                                : "bg-gradient-to-br from-slate-600 to-zinc-500 opacity-50 grayscale"
+                        )}>
                             <Album className="h-5 w-5" />
                         </div>
                         <span className="font-medium">Selected tabs</span>
@@ -247,7 +252,12 @@ export default function Popup() {
                             scope === 'window' ? "border-primary bg-accent/10" : "border-transparent bg-secondary/50"
                         )}
                     >
-                         <div className="rounded-md bg-gradient-to-br from-slate-600 to-zinc-500 p-2 text-white shadow-sm">
+                         <div className={cn(
+                            "rounded-md p-2 text-white shadow-sm transition-colors",
+                            scope === 'window'
+                                ? "bg-gradient-to-br from-blue-600 to-cyan-500"
+                                : "bg-gradient-to-br from-slate-600 to-zinc-500 opacity-50 grayscale"
+                        )}>
                             <AppWindow className="h-5 w-5" />
                         </div>
                         <span className="font-medium">Window</span>
