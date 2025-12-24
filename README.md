@@ -11,6 +11,8 @@
   </p>
   <p>
     <a href="https://mtskf.github.io/Snooooze/"><strong>🌐 Visit Website</strong></a>
+    &nbsp;•&nbsp;
+    <a href="https://chromewebstore.google.com/detail/snooooze/gncjidjnndmkohhhnijekcjiakmllonk"><strong>📥 Chrome Web Store</strong></a>
   </p>
 
   <p>
@@ -20,7 +22,7 @@
     <a href="https://github.com/mtskf/Snooooze/releases">
       <img src="https://img.shields.io/badge/version-v0.2.0-blue.svg" alt="Version" />
     </a>
-    <a href="https://chromewebstore.google.com/detail/gncjidjnndmkohhhnijekcjiakmllonk">
+    <a href="https://chromewebstore.google.com/detail/snooooze/gncjidjnndmkohhhnijekcjiakmllonk">
       <img src="https://img.shields.io/chrome-web-store/v/gncjidjnndmkohhhnijekcjiakmllonk?style=flat-square&color=4285F4&label=Chrome%20Web%20Store" alt="Chrome Web Store" />
     </a>
     <img src="https://img.shields.io/badge/Made%20with-Love-ff4081?style=flat-square" alt="Made with Love" />
