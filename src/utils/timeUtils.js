@@ -54,7 +54,7 @@ export async function getTime(timeName) {
         settings["weekend-begin"],
       );
       result.setDate(result.getDate() + daysToWeekend);
-      setSettingsTime(result, settings["start-weekend"]);
+      // Use start-day for consistency (no separate weekend start time)
       break;
     case "next-monday":
       var daysToMonday = daysToNextDay(result.getDay(), 1); // 1 is Monday
@@ -130,7 +130,6 @@ export async function getSettings() {
   const defaults = {
     "start-day": "8:00 AM",
     "end-day": "5:00 PM",
-    "start-weekend": "10:00 AM",
     "week-begin": 1,
     "weekend-begin": 6,
     "later-today": 1,
