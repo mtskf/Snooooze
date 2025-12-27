@@ -34,9 +34,9 @@ All calculations are based on the **Current Zoned Time** (timezone comes from se
 | **In a Month** | Current date + 1 month (using `date-fns/addMonths`) at `start-day`. | `start-day`: 9:00 AM |
 | **Pick Date** | Selected date at **9:00 AM** local time. Calendar starts on Monday. (Handled in `Popup.jsx`; `getTime("pick-date")` returns `undefined` and does not apply the custom timezone setting.) | - |
 
-### 2.2. "Early Morning" Exception (The 5 AM Rule)
+### 2.2. "Early Morning" Exception (Start-Day Threshold)
 To prevent frustration when working late (e.g., at 2 AM), "Tomorrow" refers to the *logical* tomorrow (after waking up), which is effectively the calendar's "Today".
-- **Rule:** If `Current Hour < 5`, "Tomorrow" and "Tomorrow Evening" use the current calendar date.
+- **Rule:** If `Current Hour < start-day hour` (default 9 AM), "Tomorrow" and "Tomorrow Evening" use the current calendar date instead of adding a day.
 
 ## 3. Scope & Shortcuts
 

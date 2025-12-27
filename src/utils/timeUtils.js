@@ -46,20 +46,18 @@ export async function getTime(timeName) {
       }
       break;
     case "tomorrow":
-      if (zonedNow.getHours() < 5) {
-        // If it's early morning (e.g., 2 AM), treat "Tomorrow" as "Today morning" (later today)
-        // i.e., don't add a day.
+      // Early Morning Exception: If current hour is before start-day time,
+      // treat "Tomorrow" as "Today morning" (don't add a day)
+      if (zonedNow.getHours() < getSettingsTime(settings["start-day"])) {
         // Keeping date as "Today"
       } else {
         result.setDate(result.getDate() + 1);
       }
       break;
     case "tomorrow-evening":
-      if (zonedNow.getHours() < 5) {
-        // Same logic? If 2AM, "Tomorrow Evening" is "Today Evening"?
-        // Original logic: if > 5, date + 1. Else date + 0.
-        // So if 2AM, date + 0 (Today Evening).
-        // If 9AM, date + 1 (Tomorrow Evening).
+      // Early Morning Exception: Same as "tomorrow"
+      if (zonedNow.getHours() < getSettingsTime(settings["start-day"])) {
+        // Today Evening
       } else {
         result.setDate(result.getDate() + 1);
       }
