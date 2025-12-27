@@ -35,7 +35,7 @@ All calculations are based on the **Current Zoned Time** (timezone comes from se
 
 ### 2.2. "Early Morning" Exception (Start-Day Threshold)
 To prevent frustration when working late (e.g., at 2 AM), "Tomorrow" refers to the *logical* tomorrow (after waking up), which is effectively the calendar's "Today".
-- **Rule:** If `Current Hour < start-day hour` (default 9 AM), "Tomorrow" and "Tomorrow Evening" use the current calendar date instead of adding a day.
+- **Rule:** If `Current Hour < start-day hour` (default 8 AM), "Tomorrow" uses the current calendar date instead of adding a day, and displays as "This morning".
 
 ## 3. Scope & Shortcuts
 
