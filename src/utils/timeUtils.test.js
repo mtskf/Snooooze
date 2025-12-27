@@ -72,15 +72,5 @@ describe('timeUtils', () => {
         expect(result.getDate()).toBe(16);
         expect(result.getHours()).toBe(8);
     });
-
-    it('should return today evening for tomorrow-evening when before start-day', async () => {
-        // Set time to 4:00 AM - before default start-day (8:00 AM)
-        vi.setSystemTime(new Date(2024, 0, 15, 4, 0, 0));
-
-        const result = await getTime('tomorrow-evening');
-        // Should stay on same date (15), time at end-day (17:00)
-        expect(result.getDate()).toBe(15);
-        expect(result.getHours()).toBe(17);
-    });
   });
 });

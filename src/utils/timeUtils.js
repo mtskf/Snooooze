@@ -47,15 +47,6 @@ export async function getTime(timeName) {
         result.setDate(result.getDate() + 1);
       }
       break;
-    case "tomorrow-evening":
-      // Early Morning Exception: Same as "tomorrow"
-      if (zonedNow.getHours() < getSettingsTime(settings["start-day"])) {
-        // Today Evening
-      } else {
-        result.setDate(result.getDate() + 1);
-      }
-      setSettingsTime(result, settings["end-day"]);
-      break;
     case "this-weekend":
       // daysToNextDay works on getDay() (0-6). Zoned object returns correct local day.
       var daysToWeekend = daysToNextDay(
