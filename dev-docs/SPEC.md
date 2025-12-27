@@ -31,7 +31,7 @@ All calculations are based on the **Current Zoned Time** (timezone comes from se
 | **Next Monday** | Next occurrence of Monday (never "today"). Time is `start-day`. | `start-day`: 8:00 AM |
 | **In a Week** | Current date + 7 days at `start-day`. | `start-day`: 8:00 AM |
 | **In a Month** | Current date + 1 month (using `date-fns/addMonths`) at `start-day`. | `start-day`: 8:00 AM |
-| **Pick Date** | Selected date at **8:00 AM** local time. Calendar starts on Monday. (Handled in `Popup.jsx`; `getTime("pick-date")` returns `undefined` and does not apply the custom timezone setting.) | - |
+| **Pick Date** | Selected date at `start-day` time. Calendar starts on Monday. (Handled in `Popup.jsx`; `getTime("pick-date")` returns `undefined`.) | `start-day`: 8:00 AM |
 
 ### 2.2. "Early Morning" Exception (Start-Day Threshold)
 To prevent frustration when working late (e.g., at 2 AM), "Tomorrow" refers to the *logical* tomorrow (after waking up), which is effectively the calendar's "Today".

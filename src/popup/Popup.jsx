@@ -180,9 +180,9 @@ export default function Popup() {
 
   const handleDateSelect = (selectedDate) => {
     if (selectedDate) {
-      // Set to 9:00 AM on the selected date
+      // Set to start-day time on the selected date
       const targetDate = new Date(selectedDate);
-      targetDate.setHours(9, 0, 0, 0);
+      targetDate.setHours(startDayHour, 0, 0, 0);
 
       setDate(targetDate);
       snoozeTabsWithScope(targetDate, calendarScope);
