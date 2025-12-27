@@ -92,6 +92,9 @@ export default function Popup() {
   const [focusedIndex, setFocusedIndex] = useState(-1); // -1 = no focus, 0-6 = items, 7 = pick date
   const [appearance, setAppearance] = useState("default");
   const [isSnoozing, setIsSnoozing] = useState(false);
+  const [startDayHour, setStartDayHour] = useState(9);
+  const [endDayHour, setEndDayHour] = useState(18);
+  const [currentHour, setCurrentHour] = useState(new Date().getHours());
 
   useEffect(() => {
     // Fetch settings and apply shortcuts/colors
@@ -124,8 +127,45 @@ export default function Popup() {
       // Set snoozed-items and settings shortcuts
       setSnoozedItemsShortcut(finalShortcuts["snoozed-items"]?.[0] || "I");
       setSettingsShortcut(finalShortcuts["settings"]?.[0] || ",");
+
+      // Parse start-day and end-day hours for visibility logic
+      const parseTimeHour = (timeStr) => {
+        if (!timeStr) return 9;
+        const parts = timeStr.split(/[\s:]+/);
+        let hour = parseInt(parts[0]);
+        const meridian = parts[2];
+        if (meridian === "AM" && hour === 12) hour = 0;
+        if (meridian === "PM" && hour < 12) hour += 12;
+        return hour;
+      };
+      setStartDayHour(parseTimeHour((result.settings || {})["start-day"] || "9:00 AM"));
+      setEndDayHour(parseTimeHour((result.settings || {})["end-day"] || "6:00 PM"));
     });
   }, []);
+
+  // Compute display items with visibility and dynamic labels
+  const isEarlyMorning = currentHour < startDayHour;
+  const isPastEndDay = currentHour >= endDayHour;
+
+  const displayItems = items
+    .filter((item) => {
+      // Hide This Evening when past end-day
+      if (item.id === "this-evening" && isPastEndDay) return false;
+      return true;
+    })
+    .map((item) => {
+      // Change Tomorrow to This morning when early morning
+      if (item.id === "tomorrow" && isEarlyMorning) {
+        return { ...item, label: "This morning" };
+      }
+      return item;
+    })
+    .sort((a, b) => {
+      // Reorder: This morning should come before This evening
+      if (a.id === "tomorrow" && isEarlyMorning && b.id === "this-evening") return -1;
+      if (b.id === "tomorrow" && isEarlyMorning && a.id === "this-evening") return 1;
+      return 0;
+    });
 
   const handleSnooze = async (key) => {
     const time = await getTime(key);
@@ -215,7 +255,7 @@ export default function Popup() {
 
   // Use the extracted hook
   useKeyboardNavigation({
-    items,
+    items: displayItems,
     focusedIndex,
     setFocusedIndex,
     setScope,
@@ -272,7 +312,7 @@ export default function Popup() {
         {/* Sub info */}
 
         <div className="space-y-1">
-          {items.map((item, index) => (
+          {displayItems.map((item, index) => (
             <SnoozeItem
               key={item.id}
               item={item}

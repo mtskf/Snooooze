@@ -35,15 +35,8 @@ export async function getTime(timeName) {
       result.setSeconds(0, 0);
       break;
     case "this-evening":
-      // "This Evening" in zoned time
-      // If "This Evening" (e.g. 6PM) is already past in zoned time, treat as "Later today" (+1 hour)
-      if (zonedNow.getHours() >= getSettingsTime(settings["end-day"])) {
-        result = new Date(zonedNow);
-        result.setHours(result.getHours() + 1);
-        result.setSeconds(0, 0);
-      } else {
-        setSettingsTime(result, settings["end-day"]);
-      }
+      // Simply set to end-day time. Visibility is controlled by Popup (hidden when past end-day)
+      setSettingsTime(result, settings["end-day"]);
       break;
     case "tomorrow":
       // Early Morning Exception: If current hour is before start-day time,

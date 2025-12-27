@@ -43,15 +43,44 @@ describe('timeUtils', () => {
         expect(result.getHours()).toBe(18);
     });
 
-    it('should handle this-evening when already evening', async () => {
-        // Set time to 19:00 (7 PM)
+    it('should return end-day time for this-evening even when past end-day (visibility handled by UI)', async () => {
+        // Set time to 19:00 (7 PM) - past end-day
         vi.setSystemTime(new Date(2024, 0, 15, 19, 0, 0));
 
-        // Logic says: if now >= end-day (18), treat as later-today (+1 hour)
-        // 19 + 1 = 20
+        // Now returns end-day time (18:00). UI hides this option when past end-day.
         const result = await getTime('this-evening');
-        expect(result.getHours()).toBe(20);
+        expect(result.getHours()).toBe(18);
         expect(result.getDate()).toBe(15);
+    });
+
+    it('should return today for tomorrow when current time is before start-day (early morning)', async () => {
+        // Set time to 3:00 AM - before default start-day (9:00 AM)
+        vi.setSystemTime(new Date(2024, 0, 15, 3, 0, 0));
+
+        const result = await getTime('tomorrow');
+        // Should stay on same date (15) since it's early morning
+        expect(result.getDate()).toBe(15);
+        expect(result.getHours()).toBe(9);
+    });
+
+    it('should return tomorrow for tomorrow when current time is after start-day', async () => {
+        // Set time to 10:00 AM - after default start-day (9:00 AM)
+        vi.setSystemTime(new Date(2024, 0, 15, 10, 0, 0));
+
+        const result = await getTime('tomorrow');
+        // Should be next day (16)
+        expect(result.getDate()).toBe(16);
+        expect(result.getHours()).toBe(9);
+    });
+
+    it('should return today evening for tomorrow-evening when before start-day', async () => {
+        // Set time to 4:00 AM - before default start-day (9:00 AM)
+        vi.setSystemTime(new Date(2024, 0, 15, 4, 0, 0));
+
+        const result = await getTime('tomorrow-evening');
+        // Should stay on same date (15), time at end-day (18:00)
+        expect(result.getDate()).toBe(15);
+        expect(result.getHours()).toBe(18);
     });
   });
 });

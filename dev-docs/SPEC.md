@@ -25,8 +25,8 @@ All calculations are based on the **Current Zoned Time** (timezone comes from se
 | Option | Logic Specification | Default Setting |
 | :--- | :--- | :--- |
 | **Later Today** | Current time + 1 hour. Minutes are preserved; seconds are cleared. | `later-today`: stored, but not used in calculation |
-| **This Evening** | Today at `end-day`. <br> **Exception:** If current time is already past `end-day`, it behaves like "Later Today" (+1 hour, seconds cleared). | `end-day`: 6:00 PM |
-| **Tomorrow** | Tomorrow at `start-day`. <br> **Exception:** If current time is early morning (< 5:00 AM), it is treated as "Today" (current date) at `start-day`. | `start-day`: 9:00 AM |
+| **This Evening** | Today at `end-day`. <br> **Visibility:** Hidden when current time is past `end-day`. | `end-day`: 6:00 PM |
+| **Tomorrow** | Tomorrow at `start-day`. <br> **Exception:** If current time is before `start-day`, uses the current calendar date. <br> **Label:** Displayed as "This morning" when before `start-day`. In Settings, shown as "Tomorrow / This morning". | `start-day`: 9:00 AM |
 | **Tomorrow Evening** | Tomorrow at `end-day`. <br> **Exception:** If current time is < 5:00 AM, it is treated as "Today" (current date) at `end-day`. | `end-day`: 6:00 PM |
 | **This Weekend** | Next occurrence of `weekend-begin` day (never the current day). Time is `start-weekend`. | `weekend-begin`: Saturday (6)<br>`start-weekend`: 10:00 AM |
 | **Next Monday** | Next occurrence of Monday (never "today"). Time is `start-day`. | `start-day`: 9:00 AM |
