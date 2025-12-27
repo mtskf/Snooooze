@@ -15,7 +15,7 @@ export const SNOOZE_ACTIONS = [
   { id: "later-today", label: "Later today" },
   { id: "this-evening", label: "This evening" },
   { id: "tomorrow", label: "Tomorrow / This morning (after midnight)", settingsLabel: true },
-  { id: "this-weekend", label: "This weekend" },
+  { id: "this-weekend", label: "This weekend / Next weekend (during weekend)", settingsLabel: true },
   { id: "next-monday", label: "Next Monday" },
   { id: "in-a-week", label: "In a week" },
   { id: "in-a-month", label: "In a month" },

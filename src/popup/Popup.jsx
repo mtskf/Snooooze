@@ -146,6 +146,8 @@ export default function Popup() {
   // Compute display items with visibility and dynamic labels
   const isEarlyMorning = currentHour < startDayHour;
   const isPastEndDay = currentHour >= endDayHour;
+  const currentDay = new Date().getDay();
+  const isWeekend = currentDay === 0 || currentDay === 6; // Sunday (0) or Saturday (6)
 
   const displayItems = items
     .filter((item) => {
@@ -157,6 +159,10 @@ export default function Popup() {
       // Change Tomorrow to This morning when early morning
       if (item.id === "tomorrow" && isEarlyMorning) {
         return { ...item, label: "This morning" };
+      }
+      // Change This weekend to Next weekend when it's already weekend
+      if (item.id === "this-weekend" && isWeekend) {
+        return { ...item, label: "Next weekend" };
       }
       return item;
     })

@@ -72,5 +72,27 @@ describe('timeUtils', () => {
         expect(result.getDate()).toBe(16);
         expect(result.getHours()).toBe(8);
     });
+
+    it('should return next Saturday for this-weekend when called on Saturday', async () => {
+        // Set time to Saturday 2024-01-13 10:00 AM
+        vi.setSystemTime(new Date(2024, 0, 13, 10, 0, 0)); // Saturday
+
+        const result = await getTime('this-weekend');
+        // daysToNextDay(6, 6) = 7 (next Saturday)
+        // 13 + 7 = 20
+        expect(result.getDate()).toBe(20);
+        expect(result.getHours()).toBe(8); // start-day
+    });
+
+    it('should return next Saturday for this-weekend when called on Sunday', async () => {
+        // Set time to Sunday 2024-01-14 10:00 AM
+        vi.setSystemTime(new Date(2024, 0, 14, 10, 0, 0)); // Sunday
+
+        const result = await getTime('this-weekend');
+        // daysToNextDay(0, 6) = 6 (Saturday is 6 days away from Sunday)
+        // 14 + 6 = 20
+        expect(result.getDate()).toBe(20);
+        expect(result.getHours()).toBe(8); // start-day
+    });
   });
 });
