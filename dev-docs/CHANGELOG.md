@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 *No unreleased changes*
 
+## v0.2.5
+
+### Fixed
+- **Service Worker**: Inlined `DEFAULT_SETTINGS` to prevent Vite code-splitting, which caused "Cannot use import statement outside a module" error.
+
 ## v0.2.4
 
 ### Changed
