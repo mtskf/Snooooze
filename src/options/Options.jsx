@@ -55,7 +55,7 @@ import GlobalShortcutSettings from "./GlobalShortcutSettings";
 import SnoozeActionSettings from "./SnoozeActionSettings";
 import AppearanceSettings from "./AppearanceSettings";
 import { Kbd } from "@/components/ui/kbd";
-import { validateSnoozedTabs } from "@/utils/validation";
+import { validateSnoozedTabs, sanitizeSnoozedTabs } from "@/utils/validation";
 
 export default function Options() {
   const [snoozedTabs, setSnoozedTabs] = useState({});
@@ -183,12 +183,18 @@ export default function Options() {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const importedTabs = JSON.parse(e.target.result);
+        let importedTabs = JSON.parse(e.target.result);
 
         const validation = validateSnoozedTabs(importedTabs);
-        if (!validation.valid) {
-             console.error("Validation errors:", validation.errors);
-             throw new Error("Invalid data structure");
+        if (!validation.valid && !validation.repairable) {
+             console.error("Validation errors (unrecoverable):", validation.errors);
+             throw new Error("Invalid data structure that cannot be repaired");
+        }
+
+        // Sanitize repairable data (fixes tabCount, removes invalid entries)
+        if (!validation.valid && validation.repairable) {
+          console.warn("Repairing imported data:", validation.errors);
+          importedTabs = sanitizeSnoozedTabs(importedTabs);
         }
 
         chrome.storage.local.get("snoozedTabs", (res) => {

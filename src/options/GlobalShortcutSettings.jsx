@@ -2,7 +2,20 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Keyboard, Settings } from "lucide-react";
 
+// Detect Firefox browser
+const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.includes('Firefox');
+
 export default function GlobalShortcutSettings({ extensionShortcut }) {
+  const handleOpenShortcuts = () => {
+    if (isFirefox) {
+      // Firefox uses about:addons for extension management
+      // But shortcuts are in the extension's own settings, so we show a message
+      chrome.tabs.create({ url: "about:addons" });
+    } else {
+      chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-2 mt-4">
@@ -21,9 +34,7 @@ export default function GlobalShortcutSettings({ extensionShortcut }) {
         <div className="flex items-center">
           <Button
             variant="outline"
-            onClick={() =>
-              chrome.tabs.create({ url: "chrome://extensions/shortcuts" })
-            }
+            onClick={handleOpenShortcuts}
           >
             <Settings className="mr-2 h-3 w-3 text-muted-foreground" />
             {extensionShortcut || "Not set"}

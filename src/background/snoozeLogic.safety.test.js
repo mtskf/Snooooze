@@ -14,8 +14,8 @@ describe('snoozeLogic Safety Checks', () => {
         create: vi.fn(),
       },
       tabs: {
-        create: vi.fn(),
-        remove: vi.fn(),
+        create: vi.fn().mockResolvedValue({}),
+        remove: vi.fn().mockResolvedValue(undefined),
       },
       storage: {
         local: {
@@ -66,13 +66,40 @@ describe('snoozeLogic Safety Checks', () => {
     });
   });
 
-   describe('snooze (addSnoozedTab)', () => {
+  describe('snooze (Critical: save before close)', () => {
+    it('should save to storage BEFORE removing tab', async () => {
+      const tab = { id: 1, url: 'http://test.com', title: 'Test' };
+      const popTime = new Date();
+      const callOrder = [];
+
+      // Track call order
+      global.chrome.storage.local.set = vi.fn(() => {
+        callOrder.push('storage.set');
+        Object.assign(mockStorage, { snoozedTabs: { tabCount: 1 } });
+        return Promise.resolve();
+      });
+      global.chrome.tabs.remove = vi.fn(() => {
+        callOrder.push('tabs.remove');
+        return Promise.resolve();
+      });
+      global.chrome.storage.local.get = vi.fn().mockResolvedValue({});
+
+      await snooze(tab, popTime, false);
+
+      // Storage should be called BEFORE tabs.remove
+      expect(callOrder).toEqual(['storage.set', 'tabs.remove']);
+    });
+
     it('should initialize storage if missing when adding a tab', async () => {
       const tab = { id: 1, url: 'http://test.com', title: 'Test' };
       const popTime = new Date();
 
-      // Mock get to return undefined first
-       global.chrome.storage.local.get = vi.fn().mockResolvedValue({});
+      // Ensure clean mocks
+      global.chrome.storage.local.get = vi.fn().mockResolvedValue({});
+      global.chrome.storage.local.set = vi.fn((obj) => {
+        Object.assign(mockStorage, obj);
+        return Promise.resolve();
+      });
 
       await snooze(tab, popTime, false);
 
@@ -82,6 +109,22 @@ describe('snoozeLogic Safety Checks', () => {
       expect(setCall.snoozedTabs).toBeDefined();
       expect(setCall.snoozedTabs.tabCount).toBe(1);
       expect(setCall.snoozedTabs[popTime.getTime()]).toHaveLength(1);
+    });
+
+    // This test must be LAST because it corrupts the storageLock promise chain
+    it('should NOT close tab if storage save fails', async () => {
+      const tab = { id: 1, url: 'http://test.com', title: 'Test' };
+      const popTime = new Date();
+
+      // Make storage fail
+      global.chrome.storage.local.set = vi.fn().mockRejectedValue(new Error('Storage full'));
+      global.chrome.storage.local.get = vi.fn().mockResolvedValue({});
+
+      // Should throw
+      await expect(snooze(tab, popTime, false)).rejects.toThrow();
+
+      // Tab should NOT have been closed
+      expect(chrome.tabs.remove).not.toHaveBeenCalled();
     });
   });
 });

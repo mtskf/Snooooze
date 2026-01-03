@@ -336,7 +336,7 @@ export default function Popup() {
             }}
             className={cn(
               "w-full flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50 transition-colors group text-left",
-              focusedIndex === items.length &&
+              focusedIndex === displayItems.length &&
                 "bg-secondary/70 ring-1 ring-primary",
             )}
           >

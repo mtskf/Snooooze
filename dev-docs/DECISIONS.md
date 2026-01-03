@@ -7,12 +7,12 @@ Documents significant architectural decisions made during development.
 - **Decision**: We reverted this change.
 - **Consequences**: Snoozed tabs are stored and displayed individually. This simplifies the restoration logic and gives users more granular control over individual tabs, while still allowing them to snooze a whole window at once (creates multiple individual snooze entries).
 
-## ADR-002: Global Restoration Context
-- **Context**: Tabs could be restored in "Current Window" or "New Window". Originally this was partly dependent on whether they were snoozed as a window.
-- **Decision**: The "Open in New Tab" setting in Options now globally dictates the restoration target.
-    - If ON: All tabs restore in the *Current Window* (as new tabs).
-    - If OFF: All tabs restore in a *New Window*.
-- **Consequences**: Behavior is predictable and user-configurable globally, rather than context-dependent.
+## ADR-002: Restoration Target by Scope
+- **Context**: Users snooze either selected tabs or an entire window. The restore target should stay consistent with that scope.
+- **Decision**: Restoration is based on snooze scope, not a global setting.
+    - **Window snoozes** restore in a *new window* to preserve the group context.
+    - **Single/selected snoozes** restore into the *last focused window*.
+- **Consequences**: Behavior is predictable and aligns with the original snooze intent. The Options "Open in New Tab" setting does not control restoration.
 
 ## ADR-003: Timezone Handling
 - **Context**: Browsers run on system time, but accurate timezone handling can be complex.

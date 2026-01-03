@@ -389,15 +389,21 @@ export async function snooze(tab, popTime, openInNewWindow, groupId = null) {
   // Ensure popTime is handled correctly (if passed as string over JSON)
   const popTimeObj = new Date(popTime);
 
-  // Remove tab
+  // CRITICAL: Save to storage FIRST before closing tab
+  // If storage fails, tab is preserved (user can retry)
+  try {
+    await addSnoozedTab(tab, popTimeObj, openInNewWindow, groupId);
+  } catch (e) {
+    console.error("Failed to save snoozed tab:", e);
+    throw e; // Propagate error - don't close tab if save failed
+  }
+
+  // Only close tab after successful save
   try {
     await chrome.tabs.remove(tab.id);
   } catch (e) {
-    // Tab may already be closed
+    // Tab may already be closed - this is acceptable
   }
-
-  // Add to storage
-  await addSnoozedTab(tab, popTimeObj, openInNewWindow, groupId);
 }
 
 // Restoration Lock
@@ -459,6 +465,10 @@ async function restoreTabs(tabs, timesToRemove) {
     }
   });
 
+  // Track successfully restored tabs
+  const restoredTabs = [];
+  const failedTabs = [];
+
   // Restore Groups (Always in new window)
   for (const groupId in groups) {
     const groupTabs = groups[groupId];
@@ -466,54 +476,94 @@ async function restoreTabs(tabs, timesToRemove) {
       // Sort by original tab index to preserve order
       groupTabs.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
       const urls = groupTabs.map((t) => t.url);
-      await chrome.windows.create({ url: urls, focused: true });
+      try {
+        await chrome.windows.create({ url: urls, focused: true });
+        restoredTabs.push(...groupTabs);
+      } catch (e) {
+        console.error("Failed to restore group:", groupId, e);
+        failedTabs.push(...groupTabs);
+      }
     }
   }
 
   // Restore Ungrouped Tabs (Always in last focused window)
   if (ungrouped.length > 0) {
+    let targetWindow;
     try {
       // Use getLastFocused for Service Worker compatibility
-      const currentWindow = await chrome.windows.getLastFocused();
-      await createTabsInWindow(ungrouped, currentWindow);
+      targetWindow = await chrome.windows.getLastFocused();
     } catch (e) {
       // Fallback if no window is focused/available
-      const newWindow = await chrome.windows.create({});
-      await createTabsInWindow(ungrouped, newWindow);
+      try {
+        targetWindow = await chrome.windows.create({});
+      } catch (e2) {
+        console.error("Failed to create fallback window:", e2);
+        failedTabs.push(...ungrouped);
+        targetWindow = null;
+      }
+    }
+
+    if (targetWindow) {
+      const results = await createTabsInWindow(ungrouped, targetWindow);
+      results.forEach((result, i) => {
+        if (result.success) {
+          restoredTabs.push(ungrouped[i]);
+        } else {
+          failedTabs.push(ungrouped[i]);
+        }
+      });
     }
   }
 
-  // Cleanup storage
+  // Log failures for debugging
+  if (failedTabs.length > 0) {
+    console.warn(`Failed to restore ${failedTabs.length} tab(s):`, failedTabs.map(t => t.url));
+  }
+
+  // Cleanup storage - only remove successfully restored tabs
   // storageLock is a promise-chain mutex to prevent race conditions
   await storageLock.then(async () => {
     // Re-read storage inside the lock to get the latest state
     const currentSnoozedTabs = await getSnoozedTabs();
     if (!currentSnoozedTabs) return;
 
+    // Only remove tabs that were successfully restored
+    const restoredCount = restoredTabs.length;
+
     for (let i = 0; i < timesToRemove.length; i++) {
       const timeKey = timesToRemove[i];
-      // Only delete if it still exists (it should)
-      if (currentSnoozedTabs[timeKey]) {
+      if (!currentSnoozedTabs[timeKey]) continue;
+
+      // Filter out restored tabs, keep failed ones
+      const originalTabs = currentSnoozedTabs[timeKey];
+      const remainingTabs = originalTabs.filter(t =>
+        failedTabs.some(f => f.creationTime === t.creationTime && f.url === t.url)
+      );
+
+      if (remainingTabs.length === 0) {
         delete currentSnoozedTabs[timeKey];
+      } else {
+        currentSnoozedTabs[timeKey] = remainingTabs;
       }
     }
 
-    // Decrement count safely
+    // Decrement count by actually restored count
     currentSnoozedTabs["tabCount"] = Math.max(
       0,
-      (currentSnoozedTabs["tabCount"] || 0) - tabs.length
+      (currentSnoozedTabs["tabCount"] || 0) - restoredCount
     );
 
     await setSnoozedTabs(currentSnoozedTabs);
   });
 }
 
-// Parallel tab creation
+// Parallel tab creation - returns array of results
 async function createTabsInWindow(tabs, w) {
   const promises = tabs.map((tab) => createTab(tab, w));
-  await Promise.all(promises);
+  return Promise.all(promises);
 }
 
+// Returns { success: boolean } to track restoration success
 async function createTab(tab, w) {
   try {
     await chrome.tabs.create({
@@ -521,8 +571,10 @@ async function createTab(tab, w) {
       url: tab.url,
       active: false,
     });
+    return { success: true };
   } catch (e) {
-    // Tab creation failed
+    console.error("Tab creation failed:", tab.url, e);
+    return { success: false };
   }
 }
 
@@ -559,7 +611,8 @@ async function addSnoozedTab(tab, popTime, openInNewWindow, groupId = null) {
       await setSnoozedTabs(snoozedTabs);
     })
     .catch((err) => {
-      // Error in storage lock
+      console.error("Error in addSnoozedTab:", err);
+      throw err; // Re-throw to propagate to caller
     });
 
   return storageLock;
