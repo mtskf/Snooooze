@@ -234,10 +234,13 @@ async function migrateStorageV2(legacyData) {
         if (!schedule[time]) schedule[time] = [];
 
         for (const tab of tabs) {
-            if (!tab.id) tab.id = generateUUID();
-            // Assign unique ID if conflict? UUID is unique enough.
-            items[tab.id] = tab;
-            schedule[time].push(tab.id);
+            let id = tab.id || generateUUID();
+            while (items[id]) {
+                id = generateUUID();
+            }
+            const entry = { ...tab, id };
+            items[id] = entry;
+            schedule[time].push(id);
         }
     }
 

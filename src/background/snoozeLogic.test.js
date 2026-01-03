@@ -11,6 +11,16 @@ import {
   getSettings,
 } from './snoozeLogic';
 
+vi.mock('../utils/uuid.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    generateUUID: vi.fn(actual.generateUUID),
+  };
+});
+
+import { generateUUID } from '../utils/uuid.js';
+
 // Mocks
 const chromeMock = {
   storage: {
@@ -115,6 +125,36 @@ describe('snoozeLogic.js (V2)', () => {
                 snoozedTabs_legacy_backup: legacy.snoozedTabs
             })
         );
+    });
+
+    test('initStorage - migration resolves duplicate tab ids', async () => {
+        const legacy = {
+            snoozedTabs: {
+                [MOCK_TIME]: [
+                    { id: 'dup-id', url: TAB_URL, creationTime: 123, index: 0 },
+                    { id: 'dup-id', url: 'https://example.com/2', creationTime: 124, index: 1 }
+                ],
+                tabCount: 2
+            }
+        };
+        chromeMock.storage.local.get.mockResolvedValue(legacy);
+
+        const originalImpl = generateUUID.getMockImplementation();
+        generateUUID.mockImplementation(() => 'new-id');
+
+        await initStorage();
+
+        const v2Call = chromeMock.storage.local.set.mock.calls.find(
+            (call) => call[0].snoooze_v2
+        );
+        expect(v2Call).toBeTruthy();
+
+        const { items, schedule } = v2Call[0].snoooze_v2;
+        expect(Object.keys(items)).toHaveLength(2);
+        expect(Object.keys(items)).toEqual(expect.arrayContaining(['dup-id', 'new-id']));
+        expect(schedule[MOCK_TIME]).toEqual(expect.arrayContaining(['dup-id', 'new-id']));
+
+        generateUUID.mockImplementation(originalImpl);
     });
 
     test('snooze - saves to V2 items and schedule w/ ID', async () => {
