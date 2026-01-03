@@ -11,7 +11,7 @@
  * @typedef {Object} SnoozedItemV2
  * @property {string} id - Unique UUID identifier
  * @property {string} url - Tab URL
- * @property {string} title - Tab title
+ * @property {string} [title] - Tab title (optional)
  * @property {string|null} [favicon] - Favicon URL (optional, can be null)
  * @property {number} creationTime - Creation timestamp (milliseconds since epoch)
  * @property {number} popTime - Scheduled wake time (milliseconds since epoch)
@@ -24,16 +24,16 @@
  * @typedef {Object} StorageV2
  * @property {number} version - Schema version (always 2 for current schema)
  * @property {Record<string, SnoozedItemV2>} items - Map of UUID to SnoozedItemV2
- * @property {Record<number, string[]>} schedule - Map of popTime to array of item UUIDs
+ * @property {Record<string, string[]>} schedule - Map of popTime (as string) to array of item UUIDs
  */
 
 /**
  * Extension settings object
  * @typedef {Object} Settings
- * @property {string} start-day - Morning time (format: "H:MM AM/PM", e.g., "8:00 AM")
- * @property {string} end-day - Evening time (format: "H:MM AM/PM", e.g., "5:00 PM")
- * @property {number} week-begin - First day of week (0=Sunday, 1=Monday, ..., 6=Saturday)
- * @property {number} weekend-begin - First day of weekend (0-6, typically 6=Saturday)
+ * @property {string} 'start-day' - Morning time (format: "H:MM AM/PM", e.g., "8:00 AM")
+ * @property {string} 'end-day' - Evening time (format: "H:MM AM/PM", e.g., "5:00 PM")
+ * @property {number} 'week-begin' - First day of week (0=Sunday, 1=Monday, ..., 6=Saturday)
+ * @property {number} 'weekend-begin' - First day of weekend (0-6, typically 6=Saturday)
  * @property {string} [timezone] - IANA timezone identifier (e.g., "America/New_York")
  * @property {Record<string, string[]>} [shortcuts] - Custom keyboard shortcuts map
  * @property {"default"|"vivid"|"heatmap"} [appearance] - Color scheme
