@@ -3,9 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Keyboard, Settings } from "lucide-react";
 
 // Detect Firefox browser
-const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.includes('Firefox');
+// const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.includes('Firefox');
 
 export default function GlobalShortcutSettings({ extensionShortcut }) {
+  const isFirefox = React.useMemo(() =>
+    typeof navigator !== 'undefined' && navigator.userAgent.includes('Firefox'),
+  []);
+
   const handleOpenShortcuts = () => {
     if (isFirefox) {
       // Firefox uses about:addons for extension management

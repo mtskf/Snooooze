@@ -189,4 +189,95 @@ describe('Options', () => {
       expect(lastSetTabs).toEqual(mergedData);
     });
   });
+
+  it('handles error response for snoozed tabs and shows empty state', async () => {
+    currentSnoozedTabs = { error: 'failed' };
+    render(<Options />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No snoozed tabs.')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Delete All')).not.toBeInTheDocument();
+  });
+
+  it('filters snoozed tabs by search and clears the query', async () => {
+    const { container } = render(<Options />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Example Tab')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search tabs...');
+    fireEvent.change(searchInput, { target: { value: 'nomatch' } });
+    expect(screen.getByText('No snoozed tabs.')).toBeInTheDocument();
+
+    const clearButton = container.querySelector('button.absolute');
+    expect(clearButton).toBeTruthy();
+    fireEvent.click(clearButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Example Tab')).toBeInTheDocument();
+    });
+  });
+
+  it('shows size warning alert from storage changes', async () => {
+    render(<Options />);
+    expect(onChangedListener).toBeTypeOf('function');
+
+    act(() => {
+      onChangedListener(
+        { sizeWarningActive: { newValue: true } },
+        'local'
+      );
+    });
+
+    expect(screen.getByText('Storage is almost full')).toBeInTheDocument();
+  });
+
+  it('clears all tabs only when confirmed', async () => {
+    global.confirm = vi.fn().mockReturnValue(false);
+    render(<Options />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Delete All')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Delete All'));
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'clearAllSnoozedTabs' })
+    );
+
+    global.confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByText('Delete All'));
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'clearAllSnoozedTabs' })
+    );
+  });
+
+  it('alerts on export failure', async () => {
+    StorageService.exportTabs.mockImplementation(() => {
+      throw new Error('Export failed');
+    });
+    render(<Options />);
+
+    fireEvent.click(screen.getByText('Export'));
+    expect(global.alert).toHaveBeenCalledWith('Export failed');
+  });
+
+  it('shows validation error when import data is unrecoverable', async () => {
+    StorageService.parseImportFile.mockRejectedValue(
+      new Error('Invalid data structure that cannot be repaired')
+    );
+    const { container } = render(<Options />);
+    const fileInput = container.querySelector('input[type="file"]');
+
+    const file = new File(['{}'], 'import.json', { type: 'application/json' });
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+    });
+
+    expect(global.alert).toHaveBeenCalledWith(
+      'Failed to import: The file contains invalid data.'
+    );
+  });
 });

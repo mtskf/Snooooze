@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import Popup from './Popup';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -17,6 +17,14 @@ vi.mock('../utils/timeUtils', () => ({
   })
 }));
 
+vi.mock('@/components/ui/calendar', () => ({
+  Calendar: ({ onSelect }) => (
+    <button type="button" onClick={() => onSelect(new Date(2024, 1, 1))}>
+      Mock Calendar
+    </button>
+  ),
+}));
+
 import { snooze } from '../background/snoozeLogic';
 
 describe('Popup', () => {
@@ -27,6 +35,9 @@ describe('Popup', () => {
     if (!global.chrome) global.chrome = {};
     if (!global.chrome.tabs) global.chrome.tabs = {};
     if (!global.chrome.runtime) global.chrome.runtime = {};
+
+    global.chrome.runtime.openOptionsPage = vi.fn();
+    global.chrome.runtime.getURL = vi.fn((path) => `chrome-extension://test/${path}`);
 
     // Mock tabs.query to support callback
     global.chrome.tabs.query.mockImplementation((query, callback) => {
@@ -134,5 +145,90 @@ describe('Popup', () => {
             expect.any(Function)
         );
     });
+  });
+
+  it('updates labels for early morning and weekend', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-06T06:00:00'));
+
+    global.chrome.runtime.sendMessage.mockImplementation((msg, callback) => {
+      if (msg?.action === 'getSettings') {
+        if (callback) {
+          callback({
+            'start-day': '8:00 AM',
+            'end-day': '6:00 PM',
+            timezone: 'UTC',
+          });
+        }
+        return;
+      }
+      if (callback) callback();
+    });
+
+    render(<Popup />);
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(screen.getByText('This morning')).toBeInTheDocument();
+    expect(screen.getByText('Next weekend')).toBeInTheDocument();
+
+    const morning = screen.getByText('This morning');
+    const evening = screen.getByText('This evening');
+    expect(
+      morning.compareDocumentPosition(evening) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+
+    vi.useRealTimers();
+  });
+
+  it('hides This evening after end-day and snoozes picked date with scope', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-05T20:00:00'));
+    vi.spyOn(Date, 'now').mockReturnValue(1700000000000);
+    vi.spyOn(Math, 'random').mockReturnValue(0.123456789);
+    vi.spyOn(window, 'close').mockImplementation(() => {});
+
+    global.chrome.runtime.sendMessage.mockImplementation((msg, callback) => {
+      if (msg?.action === 'getSettings') {
+        if (callback) {
+          callback({
+            'start-day': '8:00 AM',
+            'end-day': '6:00 PM',
+            timezone: 'UTC',
+          });
+        }
+        return;
+      }
+      if (callback) callback();
+    });
+
+    render(<Popup />);
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(screen.queryByText('This evening')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Window'));
+    fireEvent.click(screen.getByText('Pick Date'));
+    fireEvent.click(screen.getByText('Mock Calendar'));
+
+    const expectedTime = new Date(2024, 1, 1, 8, 0, 0, 0).getTime();
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'snooze',
+        popTime: expectedTime,
+        groupId: expect.stringMatching(/^1700000000000-/),
+      }),
+      expect.any(Function)
+    );
+
+    vi.useRealTimers();
   });
 });
