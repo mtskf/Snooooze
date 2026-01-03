@@ -157,7 +157,9 @@ export async function getValidatedSnoozedTabs() {
       const recovery = await recoverFromBackup();
       // Set session flag for notification (same as initStorage)
       if (recovery.recovered) {
-        await chrome.storage.session.set({ pendingRecoveryNotification: recovery.tabCount });
+        if (chrome.storage.session) {
+          await chrome.storage.session.set({ pendingRecoveryNotification: recovery.tabCount });
+        }
       }
       return recovery.data;
     }
@@ -264,7 +266,9 @@ export async function initStorage() {
       // Note: notification will be handled by serviceWorker if recovery.recovered is true
       if (recovery.recovered) {
         // Store recovery flag for notification (will be read by serviceWorker)
-        await chrome.storage.session.set({ pendingRecoveryNotification: recovery.tabCount });
+        if (chrome.storage.session) {
+          await chrome.storage.session.set({ pendingRecoveryNotification: recovery.tabCount });
+        }
       }
     }
   } else {
