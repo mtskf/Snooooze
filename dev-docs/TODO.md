@@ -6,10 +6,11 @@ None currently tracked.
 
 ## Refactoring Opportunities (Priority Order)
 
-1. [ ] Medium: V2スキーマのバージョン定義とマイグレーション表を追加し、検証/修復の入口を単一化。
-2. [ ] Medium: JSDoc型定義（`SnoozedItemV2`, `ScheduleV2`, `Settings`等）を追加。
-3. [ ] Medium: `chrome.*` APIラッパー（`ChromeApi.js`）に集約。エラーハンドリング・テストモックを一元化。
-4. [ ] Medium: ロジックの分離と共通化。
+1. [x] Medium: 設定取得の経路を統一（Popup/Optionsともに背景API経由でデフォルトをマージした設定を受け取る）。 ✅
+2. [ ] Medium: V2スキーマのバージョン定義とマイグレーション表を追加し、検証/修復の入口を単一化。
+3. [ ] Medium: JSDoc型定義（`SnoozedItemV2`, `ScheduleV2`, `Settings`等）を追加。
+4. [ ] Medium: `chrome.*` APIラッパー（`ChromeApi.js`）に集約。エラーハンドリング・テストモックを一元化。
+5. [ ] Medium: ロジックの分離と共通化。
     - `Popup.jsx` の `parseTimeHour` を `timeUtils.js` へ移動。
     - `Popup` ロジックを `useSnooze` フックへ分離。
 5. [ ] Low: メッセージ契約の集約（`action`名とrequest/responseを`messages.js`等に）。

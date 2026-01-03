@@ -223,7 +223,7 @@ describe('snoozeLogic.js (V2)', () => {
             // Timezone injected
             expect(settings.timezone).toBe('Mock/Zone');
 
-            vi.unstubAllGlobals(); // Cleanup Intl
+
         });
 
         test('returns full defaults if settings is undefined', async () => {
@@ -241,7 +241,7 @@ describe('snoozeLogic.js (V2)', () => {
             expect(settings['start-day']).toBe('8:00 AM'); // Default
             expect(settings.timezone).toBe('Mock/Zone');
 
-            vi.unstubAllGlobals();
+
         });
     });
 });
