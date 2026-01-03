@@ -116,8 +116,6 @@ export default function Options() {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     chrome.storage.local.set({ settings: newSettings });
-    // Trigger badge update
-    chrome.runtime.sendMessage({ action: "updateBadgeText" });
   };
 
   const clearTab = (tab) => {
