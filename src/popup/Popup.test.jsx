@@ -120,6 +120,34 @@ describe('Popup', () => {
       // But given the constraints, this confirms the null check path is taken without error.
   });
 
+  it('uses unified defaults when settings are missing (Start Day = 8am)', async () => {
+    // Regression Test: Ensure fallback matches DEFAULT_SETTINGS (8:00 AM), not old hardcoded 9:00 AM.
+    // Scenario: Current time 08:30.
+    // If fallback is 9:00 AM -> 8 < 9 -> isEarlyMorning=true -> "This morning"
+    // If fallback is 8:00 AM -> 8 < 8 -> isEarlyMorning=false -> "Tomorrow"
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-01T08:30:00')); // 8:30 AM
+
+    global.chrome.runtime.sendMessage.mockImplementation((msg, callback) => {
+      if (msg?.action === 'getSettings') {
+        if (callback) callback(null); // Simulate missing settings
+        return;
+      }
+      if (callback) callback();
+    });
+
+    render(<Popup />);
+
+    // Since we fixed the fallback to 8, we expect "Tomorrow" NOT "This morning"
+    await waitFor(() => {
+        expect(screen.getByText('Tomorrow')).toBeInTheDocument();
+        expect(screen.queryByText('This morning')).not.toBeInTheDocument();
+    });
+
+    vi.useRealTimers();
+  });
+
   it.skip('calls snooze function when an option is clicked', async () => {
     render(<Popup />);
 

@@ -93,15 +93,16 @@ export default function Popup() {
   const [focusedIndex, setFocusedIndex] = useState(-1); // -1 = no focus, 0-6 = items, 7 = pick date
   const [appearance, setAppearance] = useState("default");
   const [isSnoozing, setIsSnoozing] = useState(false);
-  const [startDayHour, setStartDayHour] = useState(9);
-  const [endDayHour, setEndDayHour] = useState(18);
+  /* Default to 8/17 to match DEFAULT_SETTINGS */
+  const [startDayHour, setStartDayHour] = useState(8);
+  const [endDayHour, setEndDayHour] = useState(17);
   const [currentHour, setCurrentHour] = useState(new Date().getHours());
 
   useEffect(() => {
     // Fetch settings and apply shortcuts/colors
     chrome.runtime.sendMessage({ action: "getSettings" }, (result) => {
       // Background now handles defaults merging
-      const settings = result && !result.error ? result : {};
+      const settings = result && !result.error ? result : DEFAULT_SETTINGS;
 
       // Merge shortcuts
       const userShortcuts = settings.shortcuts || {};
@@ -134,7 +135,7 @@ export default function Popup() {
 
       // Parse start-day and end-day hours for visibility logic
       const parseTimeHour = (timeStr) => {
-        if (!timeStr) return 9;
+        if (!timeStr) return 8; // Default to 8 AM match
         const parts = timeStr.split(/[\s:]+/);
         let hour = parseInt(parts[0]);
         const meridian = parts[2];

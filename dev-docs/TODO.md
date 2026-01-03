@@ -2,7 +2,7 @@
 
 ## Known Issues
 
-None currently tracked.
+- [x] Popupで`getSettings`が取得できない場合、`start-day/end-day`のフォールバックが`DEFAULT_SETTINGS`と不一致（UI表示と実際のsnooze時刻がズレる可能性）。`src/popup/Popup.jsx` ✅
 
 ## Refactoring Opportunities (Priority Order)
 
@@ -13,8 +13,9 @@ None currently tracked.
 5. [ ] Medium: ロジックの分離と共通化。
     - `Popup.jsx` の `parseTimeHour` を `timeUtils.js` へ移動。
     - `Popup` ロジックを `useSnooze` フックへ分離。
-5. [ ] Low: メッセージ契約の集約（`action`名とrequest/responseを`messages.js`等に）。
-6. [ ] Low: データフローを`ARCHITECTURE.md`に明示セクション化。
-7. [ ] Low: エラーハンドリングの統一（ログレベル制御、通知の一元化）。
-8. [ ] Low: `snoozeLogic.js` の分割（スキーマ整理後に実施）。
-9. [x] Low: `useKeyboardNavigation` と Popup/Options 表示ロジックのテストを追加してUI周辺の低カバレージを改善。 ✅
+    - `timeUtils.getSettings()` を直接storage読取から排除し、呼び出し元から設定を注入する。
+6. [ ] Low: メッセージ契約の集約（`action`名とrequest/responseを`messages.js`等に）。
+7. [ ] Low: データフローを`ARCHITECTURE.md`に明示セクション化。
+8. [ ] Low: エラーハンドリングの統一（ログレベル制御、通知の一元化）。
+9. [ ] Low: `snoozeLogic.js` の分割（スキーマ整理後に実施）。
+10. [ ] Low: 未使用importの整理（Options/Popupなど）。
