@@ -65,3 +65,4 @@ v0.2.6 🛡️ Auto Backup: Your snoozed tabs are automatically backed up locall
 Snooooze is open-source and MIT licensed. 📄
 🌐 Website: https://mtskf.github.io/Snooooze/
 🐙 GitHub: https://github.com/mtskf/Snooooze
+🐦 X (Twitter): https://x.com/snooooze_dev
