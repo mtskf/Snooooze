@@ -509,6 +509,21 @@ async function addSnoozedTab(tab, popTime, groupId = null) {
 export async function snooze(tab, popTime, groupId = null) {
   const popTimeObj = new Date(popTime);
 
+  // Check against restricted protocols to avoid restoration failures or data loss risks
+  try {
+      const url = new URL(tab.url);
+      // chrome:, edge:, braid:, about:, chrome-extension:
+      // Also file: (local files usually need specific permissions)
+      const RESTRICTED = ['chrome:', 'edge:', 'brave:', 'about:', 'chrome-extension:', 'file:'];
+      if (RESTRICTED.some(p => url.protocol === p)) {
+          console.warn(`Skipping restricted URL: ${tab.url}`);
+          return;
+      }
+  } catch (e) {
+      console.warn("Invalid URL for snooze:", tab.url);
+      return;
+  }
+
   // CRITICAL: Save to storage FIRST before closing tab
   try {
     await addSnoozedTab(tab, popTimeObj, groupId);

@@ -108,7 +108,24 @@ describe('snoozeLogic Safety Checks', () => {
       const setCall = chrome.storage.local.set.mock.calls[0][0];
       expect(setCall.snoozedTabs).toBeDefined();
       expect(setCall.snoozedTabs.tabCount).toBe(1);
+      expect(setCall.snoozedTabs.tabCount).toBe(1);
       expect(setCall.snoozedTabs[popTime.getTime()]).toHaveLength(1);
+    });
+
+    it('should ignore and NOT snooze restricted URLs', async () => {
+      const restrictedTab = { id: 99, url: 'chrome://extensions', title: 'Extensions' };
+      const popTime = new Date();
+
+      // Reset mocks
+      global.chrome.storage.local.set.mockClear();
+      global.chrome.tabs.remove.mockClear();
+
+      await snooze(restrictedTab, popTime);
+
+      // Should NOT save to storage
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+      // Should NOT close the tab
+      expect(chrome.tabs.remove).not.toHaveBeenCalled();
     });
   });
 
