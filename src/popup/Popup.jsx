@@ -31,6 +31,16 @@ import { useKeyboardNavigation } from "./hooks/useKeyboardNavigation";
 import { ScopeSelector } from "./components/ScopeSelector";
 import { SnoozeItem } from "./components/SnoozeItem";
 
+const parseTimeHour = (timeStr) => {
+  if (!timeStr) return 8; // Default to 8 AM match (safety fallback)
+  const parts = timeStr.split(/[\s:]+/);
+  let hour = parseInt(parts[0]);
+  const meridian = parts[2];
+  if (meridian === "AM" && hour === 12) hour = 0;
+  if (meridian === "PM" && hour < 12) hour += 12;
+  return hour;
+};
+
 export default function Popup() {
   const [date, setDate] = useState();
   const [items, setItems] = useState([
@@ -94,8 +104,8 @@ export default function Popup() {
   const [appearance, setAppearance] = useState("default");
   const [isSnoozing, setIsSnoozing] = useState(false);
   /* Default to 8/17 to match DEFAULT_SETTINGS */
-  const [startDayHour, setStartDayHour] = useState(8);
-  const [endDayHour, setEndDayHour] = useState(17);
+  const [startDayHour, setStartDayHour] = useState(parseTimeHour(DEFAULT_SETTINGS["start-day"]));
+  const [endDayHour, setEndDayHour] = useState(parseTimeHour(DEFAULT_SETTINGS["end-day"]));
   const [currentHour, setCurrentHour] = useState(new Date().getHours());
 
   useEffect(() => {
@@ -134,17 +144,10 @@ export default function Popup() {
       setSettingsShortcut(finalShortcuts["settings"]?.[0] || ",");
 
       // Parse start-day and end-day hours for visibility logic
-      const parseTimeHour = (timeStr) => {
-        if (!timeStr) return 8; // Default to 8 AM match
-        const parts = timeStr.split(/[\s:]+/);
-        let hour = parseInt(parts[0]);
-        const meridian = parts[2];
-        if (meridian === "AM" && hour === 12) hour = 0;
-        if (meridian === "PM" && hour < 12) hour += 12;
-        return hour;
-      };
       setStartDayHour(parseTimeHour(settings["start-day"]));
       setEndDayHour(parseTimeHour(settings["end-day"]));
+    });
+  }, []);
     });
   }, []);
 
