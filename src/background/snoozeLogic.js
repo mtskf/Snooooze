@@ -166,8 +166,9 @@ export async function getValidatedSnoozedTabs() {
     const validation = validateSnoozedTabsV2(v2Data);
 
     if (!validation.valid) {
-        console.warn('V2 validation errors during read, sanitizing:', validation.errors);
+        console.warn('V2 validation errors during read, sanitizing and persisting:', validation.errors);
         const sanitized = sanitizeSnoozedTabsV2(v2Data);
+        await saveStorageV2(sanitized);
         return adapterV1(sanitized);
     }
 
