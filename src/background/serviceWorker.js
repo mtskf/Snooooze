@@ -52,7 +52,7 @@ async function handleMessage(request, sendResponse) {
   try {
     switch (request.action) {
       case "getSnoozedTabs":
-        sendResponse(await getSnoozedTabs());
+        sendResponse(await getValidatedSnoozedTabs());
         break;
 
       case "setSnoozedTabs":

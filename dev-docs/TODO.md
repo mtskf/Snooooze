@@ -4,12 +4,15 @@
 - [x] 43d70666ca6b4fb77efa69b1f34203f0251c6d3b
 - [x] 97d1e0d7c45a1d98dce785238b0c180842484aaf
 - [ ] 127debfad7431005d3631940b43e0a137896258d
+- [ ] 59222e5487d7b02deb3f5cebd13bfe46f1429a13
 
 
 ## Known Issues
 
-- [ ] Medium: V2読み取り時のサニタイズ結果がストレージに永続化されないため、破損データが残り続ける（毎回サニタイズ/警告が発生する可能性）。
-- [ ] Medium: V2サニタイズの単体テストが無いため、データ欠損やスケジュール欠落の回帰を検知できない。
+- [x] Medium: V2読み取り時のサニタイズ結果がストレージに永続化されないため、破損データが残り続ける（毎回サニタイズ/警告が発生する可能性）。
+    - Resolved: `getValidatedSnoozedTabs` now saves sanitized data to storage.
+- [x] Medium: V2サニタイズの単体テストが無いため、データ欠損やスケジュール欠落の回帰を検知できない。
+    - Resolved: Added 9 tests for `validateSnoozedTabsV2` and `sanitizeSnoozedTabsV2`.
 - [x] Medium: V2読み取り時の検証・サニタイズが未実装。`getValidatedSnoozedTabs`は未使用で、破損データがそのままUI/ロジックに流れる可能性がある。
     - Resolved: Implemented `sanitizeSnoozedTabsV2` and updated `getValidatedSnoozedTabs` to validate/sanitize on read.
 
