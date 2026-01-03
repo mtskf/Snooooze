@@ -271,6 +271,7 @@ export default function Popup() {
     handleOneMinuteSnooze,
     setIsCalendarOpen,
     setCalendarScope,
+    isCalendarOpen,
     pickDateShortcut,
     snoozedItemsShortcut,
     settingsShortcut,
