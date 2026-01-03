@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/utils/timeUtils', () => ({
@@ -6,6 +6,14 @@ vi.mock('@/utils/timeUtils', () => ({
     'start-day': '8:00 AM',
     timezone: 'UTC',
   }),
+}));
+
+vi.mock('@/utils/StorageService', () => ({
+  StorageService: {
+    parseImportFile: vi.fn(),
+    mergeTabs: vi.fn(),
+    exportTabs: vi.fn(),
+  },
 }));
 
 vi.mock('./TimeSettings', () => ({
@@ -21,6 +29,7 @@ vi.mock('./AppearanceSettings', () => ({
   default: () => null,
 }));
 
+import { StorageService } from '@/utils/StorageService';
 import Options from './Options';
 
 describe('Options', () => {
@@ -39,11 +48,14 @@ describe('Options', () => {
 
   let onChangedListener;
   let currentSnoozedTabs;
+  let lastSetTabs;
 
   beforeEach(() => {
     vi.clearAllMocks();
     currentSnoozedTabs = snoozedTabs;
     onChangedListener = undefined;
+    lastSetTabs = undefined;
+    global.alert = vi.fn();
 
     global.chrome.storage.local.get.mockImplementation((keys, callback) => {
       const res = {};
@@ -70,6 +82,11 @@ describe('Options', () => {
     global.chrome.runtime.sendMessage.mockImplementation((message, callback) => {
       if (message.action === 'getSnoozedTabs') {
         if (callback) callback(currentSnoozedTabs);
+        return;
+      }
+      if (message.action === 'setSnoozedTabs') {
+        lastSetTabs = message.data;
+        if (callback) callback();
         return;
       }
       if (callback) callback();
@@ -119,6 +136,49 @@ describe('Options', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Next Tab')).toBeInTheDocument();
+    });
+  });
+
+  it('imports by merging with background snoozed tabs data', async () => {
+    const importedTabs = {
+      tabCount: 1,
+      '1704300000000': [
+        {
+          url: 'https://example.com/imported',
+          title: 'Imported Tab',
+          favicon: '',
+          creationTime: 125,
+          popTime: 1704300000000,
+        },
+      ],
+    };
+    const mergedData = {
+      ...snoozedTabs,
+      '1704300000000': importedTabs['1704300000000'],
+      tabCount: 2,
+    };
+
+    StorageService.parseImportFile.mockResolvedValue(importedTabs);
+    StorageService.mergeTabs.mockReturnValue({ mergedData, addedCount: 1 });
+
+    const { container } = render(<Options />);
+    const fileInput = container.querySelector('input[type="file"]');
+
+    const file = new File(['{}'], 'import.json', { type: 'application/json' });
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+    });
+
+    await waitFor(() => {
+      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'getSnoozedTabs' }),
+        expect.any(Function)
+      );
+      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'setSnoozedTabs', data: mergedData }),
+        expect.any(Function)
+      );
+      expect(lastSetTabs).toEqual(mergedData);
     });
   });
 });

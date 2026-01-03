@@ -52,6 +52,7 @@ Snooooze/
 - **Snoozed List**: Grouped by date, with delete/restore actions
 - **Settings**: Morning/Evening times, Appearance theme
 - **Export/Import**: JSON format (preserves timestamps) via `StorageService`
+- **Import Merge**: Uses `getSnoozedTabs` message to fetch current data before merge
 - **URL Hash**: Supports `#settings` to open directly to Settings tab
 
 ## Data Storage

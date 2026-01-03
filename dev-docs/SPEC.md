@@ -104,6 +104,7 @@ Defined in `src/utils/constants.js`.
 - **Repair Mode**: If validation fails due to minor issues (e.g., `tabCount` mismatch, missing non-critical fields), the validator returns `repairable: true`.
 - **Sanitization**: User can choose to "Sanitize & Import". This recalculates the `tabCount` and filters out only the strictly invalid entries, preserving the rest.
 - **Implementation**: Import/export is centralized in `StorageService` (validate, sanitize, merge, and error handling). The Options UI delegates to this service and only shows success/error messages.
+- **Merge Source**: Import merges with current data fetched via background (`getSnoozedTabs`) to avoid V1-only overwrites.
 
 ## 7. Storage & Limits
 

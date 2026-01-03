@@ -8,7 +8,7 @@
 ## Known Issues
 
 - [x] High: Options/Popupが`chrome.storage.local.snoozedTabs`（V1）を直接参照しており、V2移行後は実データ(`snoooze_v2`)とUIが同期しない。Snoozed一覧の表示、検索、更新が実態とズレる。
-- [ ] High: インポート処理がV1データのみを基準にマージして`setSnoozedTabs`へ送るため、V2のみ存在する現行データが上書き消失する可能性がある（`snoozedTabs`が空の環境でのデータロス）。
+- [x] High: インポート処理がV1データのみを基準にマージして`setSnoozedTabs`へ送るため、V2のみ存在する現行データが上書き消失する可能性がある（`snoozedTabs`が空の環境でのデータロス）。
 - [ ] Medium: 破損時の復旧フローが実行されない。`recoverFromBackup`は未使用で、`pendingRecoveryNotification`もセットされないため、自動復旧/通知が発火しない。
 - [ ] Medium: V2読み取り時の検証・サニタイズが未実装。`getValidatedSnoozedTabs`は未使用で、破損データがそのままUI/ロジックに流れる可能性がある。
 

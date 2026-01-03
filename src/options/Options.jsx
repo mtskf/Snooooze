@@ -174,9 +174,12 @@ export default function Options() {
     try {
       const importedTabs = await StorageService.parseImportFile(file);
 
-      chrome.storage.local.get("snoozedTabs", (res) => {
-        const currentTabs = res.snoozedTabs || { tabCount: 0 };
-        const { mergedData, addedCount } = StorageService.mergeTabs(currentTabs, importedTabs);
+      chrome.runtime.sendMessage({ action: "getSnoozedTabs" }, (res) => {
+        const currentTabs = res && !res.error ? res : { tabCount: 0 };
+        const { mergedData, addedCount } = StorageService.mergeTabs(
+          currentTabs,
+          importedTabs
+        );
 
         // Use background setSnoozedTabs to trigger backup rotation and size check
         chrome.runtime.sendMessage(
