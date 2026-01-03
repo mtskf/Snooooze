@@ -1,12 +1,13 @@
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/utils/timeUtils', () => ({
-  getSettings: vi.fn().mockResolvedValue({
-    'start-day': '8:00 AM',
-    timezone: 'UTC',
-  }),
-}));
+// getSettings mock is no longer needed as we mock sendMessage
+// vi.mock('@/utils/timeUtils', () => ({
+//   getSettings: vi.fn().mockResolvedValue({
+//     'start-day': '8:00 AM',
+//     timezone: 'UTC',
+//   }),
+// }));
 
 vi.mock('@/utils/StorageService', () => ({
   StorageService: {
@@ -87,6 +88,13 @@ describe('Options', () => {
       if (message.action === 'setSnoozedTabs') {
         lastSetTabs = message.data;
         if (callback) callback();
+        return;
+      }
+      if (message.action === 'getSettings') {
+        if (callback) callback({
+          'start-day': '8:00 AM',
+          timezone: 'UTC'
+        });
         return;
       }
       if (callback) callback();

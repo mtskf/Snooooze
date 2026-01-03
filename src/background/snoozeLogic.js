@@ -253,8 +253,17 @@ async function migrateStorageV2(legacyData) {
 
 export async function getSettings() {
   const res = await chrome.storage.local.get("settings");
-  // Return raw value; initStorage writes defaults if missing
-  return res.settings;
+
+  const defaults = {
+    ...DEFAULT_SETTINGS,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+
+  if (!res.settings) {
+    return defaults;
+  }
+  // Merge with defaults to ensure new keys exist
+  return { ...defaults, ...res.settings };
 }
 
 export async function setSettings(val) {

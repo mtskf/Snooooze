@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getSettings } from "@/utils/timeUtils";
+// import { getSettings } from "@/utils/timeUtils"; // Removed direct access
 import {
   Trash2,
   ExternalLink,
@@ -82,11 +82,9 @@ export default function Options() {
   }, []);
 
   useEffect(() => {
-    // Initial load using helper to ensure defaults (like timezone) are merged
-    getSettings().then((mergedSettings) => {
-      setSettings(mergedSettings);
-      // If timezone was missing and added by default, we might (optionally) want to persist it,
-      // but for now local state is sufficient as it will be saved on any change.
+    // Initial load via Background API to ensure consistent defaults
+    chrome.runtime.sendMessage({ action: "getSettings" }, (response) => {
+        setSettings(response || {});
     });
 
     fetchSnoozedTabs();

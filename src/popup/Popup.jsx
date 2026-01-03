@@ -100,9 +100,9 @@ export default function Popup() {
   useEffect(() => {
     // Fetch settings and apply shortcuts/colors
     chrome.runtime.sendMessage({ action: "getSettings" }, (result) => {
-      // Use result if valid, otherwise empty object. Apply defaults on top.
-      const userSettings = result && !result.error ? result : {};
-      const settings = { ...DEFAULT_SETTINGS, ...userSettings };
+      // Background now handles defaults merging
+      const settings = result && !result.error ? result : {};
+
       // Merge shortcuts
       const userShortcuts = settings.shortcuts || {};
       const finalShortcuts = { ...DEFAULT_SHORTCUTS, ...userShortcuts };
