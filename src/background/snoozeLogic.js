@@ -582,38 +582,44 @@ let storageLock = Promise.resolve();
 
 async function addSnoozedTab(tab, popTime, groupId = null) {
   // Wrap the logic in the lock
-  storageLock = storageLock
-    .then(async () => {
-      let snoozedTabs = await getSnoozedTabs();
-      if (!snoozedTabs) {
-        snoozedTabs = { tabCount: 0 };
-      }
-      const fullTime = popTime.getTime();
+  // Create the task chained to the current lock
+  const task = storageLock.then(async () => {
+    let snoozedTabs = await getSnoozedTabs();
+    if (!snoozedTabs) {
+      snoozedTabs = { tabCount: 0 };
+    }
+    const fullTime = popTime.getTime();
 
-      if (!snoozedTabs[fullTime]) {
-        snoozedTabs[fullTime] = [];
-      }
+    if (!snoozedTabs[fullTime]) {
+      snoozedTabs[fullTime] = [];
+    }
 
-      snoozedTabs[fullTime].push({
-        url: tab.url,
-        title: tab.title,
-        favicon: tab.favIconUrl || tab.favicon,
-        creationTime: new Date().getTime(),
-        popTime: popTime.getTime(),
-        groupId: groupId,
-        index: tab.index,
-      });
-
-      snoozedTabs["tabCount"] = (snoozedTabs["tabCount"] || 0) + 1;
-
-      await setSnoozedTabs(snoozedTabs);
-    })
-    .catch((err) => {
-      console.error("Error in addSnoozedTab:", err);
-      throw err; // Re-throw to propagate to caller
+    snoozedTabs[fullTime].push({
+      url: tab.url,
+      title: tab.title,
+      favicon: tab.favIconUrl || tab.favicon,
+      creationTime: new Date().getTime(),
+      popTime: popTime.getTime(),
+      groupId: groupId,
+      index: tab.index,
     });
 
-  return storageLock;
+    snoozedTabs["tabCount"] = (snoozedTabs["tabCount"] || 0) + 1;
+
+    await setSnoozedTabs(snoozedTabs);
+  });
+
+  // Update storageLock to wait for this task, but SWALLOW errors to keep the chain alive
+  storageLock = task.catch((e) => {
+    // Lock doesn't care about the error, just needs to proceed.
+    // Error is handled by the caller via the returned 'task'.
+  });
+
+  // Return the task to the caller, propagating any errors
+  return task.catch((err) => {
+    console.error("Error in addSnoozedTab:", err);
+    throw err;
+  });
 }
 
 // Helper: Get all tabs matching a specific groupId

@@ -179,4 +179,25 @@ describe('snoozeLogic Safety Checks', () => {
     // Tab should NOT have been closed
     expect(chrome.tabs.remove).not.toHaveBeenCalled();
   });
+
+  it('should recover from storage failure and allow subsequent operations', async () => {
+    const { snooze } = await import('./snoozeLogic');
+    const tab1 = { id: 1, url: 'http://fail.com', title: 'Fail' };
+    const tab2 = { id: 2, url: 'http://success.com', title: 'Success' };
+    const popTime = new Date();
+
+    // 1st attempt: Fail
+    global.chrome.storage.local.set = vi.fn().mockRejectedValueOnce(new Error('Transient Error'));
+    global.chrome.storage.local.get = vi.fn().mockResolvedValue({});
+
+    await expect(snooze(tab1, popTime)).rejects.toThrow('Transient Error');
+
+    // 2nd attempt: Success
+    global.chrome.storage.local.set = vi.fn().mockResolvedValue();
+
+    // This should succeed if storageLock handles rejection correctly
+    await expect(snooze(tab2, popTime)).resolves.not.toThrow();
+
+    expect(chrome.tabs.remove).toHaveBeenCalledWith(2);
+  });
 });
