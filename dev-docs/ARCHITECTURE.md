@@ -19,7 +19,8 @@ Snooooze/
 │   │   ├── timeUtils.js     # Time calculations
 │   │   ├── StorageService.js# Import/export helpers
 │   │   ├── validation.js    # Storage data validation
-│   │   └── constants.js     # Config, Defaults, Theme colors
+│   │   ├── constants.js     # Config, Defaults, Theme colors
+│   │   └── uuid.js          # UUID generation
 │   ├── lib/                 # shadcn utilities (cn)
 │   └── index.css            # Global styles (Neo Carbon theme)
 ├── dist/                    # Built extension
@@ -115,7 +116,7 @@ Snooooze/
 
 ### Snooze Flow
 1. User selects scope (tabs/window) and time option
-3. Service worker stores tabs under timestamp key (throws error if fails)
+3. Service worker generates a UUID and stores tab data in `items` map and `schedule` index (V2 Normalized Schema).
 4. Tab is closed (ONLY after successful storage save); popup window closes
 
 ### Restore Flow

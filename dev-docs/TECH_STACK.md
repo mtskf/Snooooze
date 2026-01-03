@@ -11,8 +11,9 @@
 - **Icons**: Lucide React
 
 ## State & Logic
-- **Storage**: `chrome.storage.local` (Snoozed tabs)
+- **Storage**: `chrome.storage.local` (V2 Normalized Schema: `items` + `schedule`)
 - **Time/Date**: Native `Intl` API, `date-fns`, `date-fns-tz`
+- **IDs**: Custom UUID generation (`src/utils/uuid.js`)
 
 ## Tooling
 - **Package Manager**: pnpm

@@ -148,3 +148,22 @@ Documents significant architectural decisions made during development.
 - **Context**: Corrupt V2 data was not triggering recovery or user notification on startup.
 - **Decision**: Validate `snoooze_v2` in `initStorage()` and, on failure, recover from backups and set `pendingRecoveryNotification` in session storage.
 - **Consequences**: Recovery runs automatically on startup and a user-facing notification can be shown by the service worker.
+
+## ADR-026: V2 Normalized Storage Schema
+- **Context**: V1 storage used a time-indexed array format (`{ timestamp: [tab1, tab2] }`). This made looking up specific tabs by ID (for removal or de-duplication) O(N) and complex. It also tied data strictly to time buckets.
+- **Decision**: Migrate to a normalized relational model:
+    - `items`: Map of `uuid -> TabData`.
+    - `schedule`: Map of `timestamp -> [uuid]`.
+- **Consequences**:
+    - **O(1) Access**: Tabs can be looked up, updated, or removed by ID instantly.
+    - **Flexibility**: Scheduling logic is decoupled from tab data. A tab can be rescheduled just by moving its UUID in `schedule`.
+    - **Deduplication**: UUIDs enforce uniqueness.
+    - **Migration**: Requires a migration step to convert V1 data to V2 on startup. `snoozeLogic.js` handles this transparently.
+
+## ADR-027: UUID-based Tab Identification
+- **Context**: Chrome's `tab.id` is ephemeral and reused across sessions. It cannot be used as a stable identifier for long-term storage (snoozed tabs).
+- **Decision**: Generate a distinct UUID (v4-style) for every snoozed tab at the moment of snoozing.
+- **Consequences**:
+    - **Stable Identity**: Each snoozed item has a permanent unique ID.
+    - **Safe Restore**: We don't rely on browser internal IDs.
+    - **Idempotency**: Operations like "Remove Item" are safe and exact, even if the user has multiple tabs with the same URL.
