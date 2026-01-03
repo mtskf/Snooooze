@@ -7,7 +7,7 @@ None currently tracked.
 ## Refactoring Opportunities
 
 ### High Priority (Next Sprint)
-- [ ] Medium: 定数の集約管理。
+- [x] Medium: 定数の集約管理。 ✅
     - `snoozeLogic.js` の `BACKUP_*`, `STORAGE_LIMIT` 等。
     - `src/utils/constants.js` へ移動し、設定の単一情報源とする。
 
