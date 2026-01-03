@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   validateSnoozedTabs,
   sanitizeSnoozedTabs,
-  validateTabEntry
+  validateTabEntry,
+  validateSnoozedTabsV2,
+  sanitizeSnoozedTabsV2
 } from './validation';
 
 describe('validation', () => {
@@ -216,6 +218,117 @@ describe('validation', () => {
       const sanitized = sanitizeSnoozedTabs(data);
       expect(sanitized['1704067200000'][0].title).toBe('Example');
       expect(sanitized['1704067200000'][0].customField).toBe('preserved');
+    });
+  });
+
+  describe('validateSnoozedTabsV2', () => {
+    it('should validate correct V2 structure', () => {
+      const data = {
+        items: {
+          'uuid-1': { id: 'uuid-1', url: 'https://example.com', creationTime: 1704000000000, popTime: 1704067200000 }
+        },
+        schedule: {
+          '1704067200000': ['uuid-1']
+        }
+      };
+      const result = validateSnoozedTabsV2(data);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should reject missing items or schedule', () => {
+      expect(validateSnoozedTabsV2({ items: {} }).valid).toBe(false);
+      expect(validateSnoozedTabsV2({ schedule: {} }).valid).toBe(false);
+      expect(validateSnoozedTabsV2(null).valid).toBe(false);
+    });
+
+    it('should detect orphaned schedule references', () => {
+      const data = {
+        items: {},
+        schedule: { '1704067200000': ['missing-id'] }
+      };
+      const result = validateSnoozedTabsV2(data);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('missing item ID'))).toBe(true);
+    });
+
+    it('should detect ID mismatch between key and item.id', () => {
+      const data = {
+        items: {
+          'uuid-1': { id: 'uuid-different', url: 'https://example.com', creationTime: 1704000000000, popTime: 1704067200000 }
+        },
+        schedule: {}
+      };
+      const result = validateSnoozedTabsV2(data);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('ID Validation Mismatch'))).toBe(true);
+    });
+  });
+
+  describe('sanitizeSnoozedTabsV2', () => {
+    it('should return empty structure for null/undefined', () => {
+      expect(sanitizeSnoozedTabsV2(null)).toEqual({ items: {}, schedule: {} });
+      expect(sanitizeSnoozedTabsV2(undefined)).toEqual({ items: {}, schedule: {} });
+    });
+
+    it('should return empty structure for non-object', () => {
+      expect(sanitizeSnoozedTabsV2('string')).toEqual({ items: {}, schedule: {} });
+    });
+
+    it('should remove invalid items', () => {
+      const data = {
+        items: {
+          'uuid-1': { id: 'uuid-1', url: 'https://valid.com', creationTime: 1704000000000, popTime: 1704067200000 },
+          'uuid-2': { invalid: 'entry' } // missing required fields
+        },
+        schedule: {
+          '1704067200000': ['uuid-1', 'uuid-2']
+        }
+      };
+      const sanitized = sanitizeSnoozedTabsV2(data);
+      expect(Object.keys(sanitized.items)).toHaveLength(1);
+      expect(sanitized.items['uuid-1']).toBeDefined();
+      expect(sanitized.items['uuid-2']).toBeUndefined();
+    });
+
+    it('should remove orphaned schedule entries', () => {
+      const data = {
+        items: {
+          'uuid-1': { id: 'uuid-1', url: 'https://valid.com', creationTime: 1704000000000, popTime: 1704067200000 }
+        },
+        schedule: {
+          '1704067200000': ['uuid-1', 'uuid-missing'],
+          '1704153600000': ['uuid-gone'] // all IDs missing
+        }
+      };
+      const sanitized = sanitizeSnoozedTabsV2(data);
+      expect(sanitized.schedule['1704067200000']).toEqual(['uuid-1']);
+      expect(sanitized.schedule['1704153600000']).toBeUndefined();
+    });
+
+    it('should remove items with ID mismatch', () => {
+      const data = {
+        items: {
+          'uuid-1': { id: 'uuid-wrong', url: 'https://valid.com', creationTime: 1704000000000, popTime: 1704067200000 }
+        },
+        schedule: { '1704067200000': ['uuid-1'] }
+      };
+      const sanitized = sanitizeSnoozedTabsV2(data);
+      expect(Object.keys(sanitized.items)).toHaveLength(0);
+      expect(sanitized.schedule['1704067200000']).toBeUndefined();
+    });
+
+    it('should preserve valid items and schedule', () => {
+      const data = {
+        items: {
+          'uuid-1': { id: 'uuid-1', url: 'https://example.com', creationTime: 1704000000000, popTime: 1704067200000, title: 'Test' }
+        },
+        schedule: {
+          '1704067200000': ['uuid-1']
+        }
+      };
+      const sanitized = sanitizeSnoozedTabsV2(data);
+      expect(sanitized.items['uuid-1'].title).toBe('Test');
+      expect(sanitized.schedule['1704067200000']).toEqual(['uuid-1']);
     });
   });
 });
