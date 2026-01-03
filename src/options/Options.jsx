@@ -55,7 +55,7 @@ import GlobalShortcutSettings from "./GlobalShortcutSettings";
 import SnoozeActionSettings from "./SnoozeActionSettings";
 import AppearanceSettings from "./AppearanceSettings";
 import { Kbd } from "@/components/ui/kbd";
-import { validateSnoozedTabs, sanitizeSnoozedTabs } from "@/utils/validation";
+import { StorageService } from "@/utils/StorageService";
 
 export default function Options() {
   const [snoozedTabs, setSnoozedTabs] = useState({});
@@ -152,93 +152,43 @@ export default function Options() {
 
   // Export snoozed tabs to JSON
   const handleExport = () => {
-    if (
-      !snoozedTabs ||
-      Object.keys(snoozedTabs).length === 0 ||
-      (Object.keys(snoozedTabs).length === 1 && snoozedTabs.tabCount === 0)
-    ) {
-      alert("No tabs to export.");
-      return;
+    try {
+      StorageService.exportTabs(snoozedTabs);
+    } catch (e) {
+      alert(e.message);
     }
-
-    const data = JSON.stringify(snoozedTabs, null, 2);
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `snooooze-export-${new Date().toISOString().split("T")[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   // Import from JSON
-  const handleImport = (event) => {
+  const handleImport = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        let importedTabs = JSON.parse(e.target.result);
+    try {
+      const importedTabs = await StorageService.parseImportFile(file);
 
-        const validation = validateSnoozedTabs(importedTabs);
-        if (!validation.valid && !validation.repairable) {
-             console.error("Validation errors (unrecoverable):", validation.errors);
-             throw new Error("Invalid data structure that cannot be repaired");
-        }
+      chrome.storage.local.get("snoozedTabs", (res) => {
+        const currentTabs = res.snoozedTabs || { tabCount: 0 };
+        const { mergedData, addedCount } = StorageService.mergeTabs(currentTabs, importedTabs);
 
-        // Sanitize repairable data (fixes tabCount, removes invalid entries)
-        if (!validation.valid && validation.repairable) {
-          console.warn("Repairing imported data:", validation.errors);
-          importedTabs = sanitizeSnoozedTabs(importedTabs);
-        }
-
-        chrome.storage.local.get("snoozedTabs", (res) => {
-          const currentTabs = res.snoozedTabs || { tabCount: 0 };
-          let importedCount = 0;
-
-          Object.keys(importedTabs).forEach((key) => {
-            if (key === "tabCount") return;
-
-            const tabsList = importedTabs[key];
-            if (Array.isArray(tabsList)) {
-              if (!currentTabs[key]) {
-                currentTabs[key] = [];
-              }
-              // Avoid exact duplicates if possible?
-              // For simplicity, just append. User can clean up.
-              currentTabs[key].push(...tabsList);
-              importedCount += tabsList.length;
-            }
-          });
-
-          // Recalculate total count
-          let totalCount = 0;
-          Object.keys(currentTabs).forEach((k) => {
-            if (k !== "tabCount" && Array.isArray(currentTabs[k])) {
-              totalCount += currentTabs[k].length;
-            }
-          });
-          currentTabs.tabCount = totalCount;
-
-          // Use background setSnoozedTabs to trigger backup rotation and size check
-          chrome.runtime.sendMessage(
-            { action: "setSnoozedTabs", data: currentTabs },
-            () => {
-              alert(`Imported ${importedCount} tabs successfully!`);
-            }
-          );
-        });
-      } catch (error) {
-        console.error(error);
-        alert(
-          `Failed to import: ${error.message === "Invalid data structure that cannot be repaired" ? "The file contains invalid data." : "Invalid JSON file."}`
+        // Use background setSnoozedTabs to trigger backup rotation and size check
+        chrome.runtime.sendMessage(
+          { action: "setSnoozedTabs", data: mergedData },
+          () => {
+            alert(`Imported ${addedCount} tabs successfully!`);
+          }
         );
-      }
-    };
-    reader.readAsText(file);
+      });
+    } catch (error) {
+      console.error(error);
+      alert(
+        `Failed to import: ${
+          error.message === "Invalid data structure that cannot be repaired"
+            ? "The file contains invalid data."
+            : "Invalid JSON file."
+        }`
+      );
+    }
     event.target.value = ""; // Reset file input
   };
 
