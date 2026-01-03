@@ -40,6 +40,7 @@ Snooooze/
 - **Backup System**: Debounced 3-generation rotating backups with auto-recovery
 - **Backup System**: Debounced 3-generation rotating backups with auto-recovery
 - **Null Safety**: All storage operations guard against missing/corrupted data
+- **Startup Recovery**: `initStorage()` validates `snoooze_v2` and invokes backup recovery + session notification when invalid
 
 ### Popup (`Popup.jsx`)
 - **Scope Selection**: "Selected tabs" or "Window" (Shift key toggle)

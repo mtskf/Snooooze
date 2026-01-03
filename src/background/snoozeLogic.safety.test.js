@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { removeSnoozedTabWrapper, removeWindowGroup, restoreWindowGroup, snooze, popCheck } from './snoozeLogic';
+import { removeSnoozedTabWrapper, removeWindowGroup, restoreWindowGroup, snooze, popCheck, initStorage } from './snoozeLogic';
 
 // Helpers
 const MOCK_TIME = 1625097600000;
@@ -63,6 +63,27 @@ describe('snoozeLogic Safety Checks (V2)', () => {
 
   afterEach(() => {
       vi.useRealTimers();
+  });
+
+  it('initStorage triggers recovery and sets notification when V2 data is invalid', async () => {
+    mockStorage = {
+      snoooze_v2: { items: 'oops', schedule: {} }
+    };
+    chrome.storage.local.get.mockResolvedValue(mockStorage);
+
+    await initStorage();
+
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        snoooze_v2: expect.objectContaining({
+          items: expect.any(Object),
+          schedule: expect.any(Object),
+        })
+      })
+    );
+    expect(chrome.storage.session.set).toHaveBeenCalledWith(
+      expect.objectContaining({ pendingRecoveryNotification: expect.any(Number) })
+    );
   });
 
   describe('removeSnoozedTabWrapper', () => {

@@ -95,6 +95,7 @@ Defined in `src/utils/constants.js`.
 - **Process**: Backups are scanned newest-first; the first valid backup is restored.
 - **Fallback**: If no valid backups exist, resets to `{ tabCount: 0 }`.
 - **Notification**: Shows "Recovered X snoozed tabs from backup" with 5-minute deduplication.
+- **V2 Validation Trigger**: If `snoooze_v2` fails validation on startup, recovery is attempted and a pending notification is queued.
 
 ### 6.3. Migration
 - On first run after update, if valid data exists but no backups, an initial backup is created.

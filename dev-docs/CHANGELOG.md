@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **Options Import/Export**: Options page now delegates import/export to `StorageService`, simplifying UI logic and ensuring consistent validation/sanitization.
 - **Popup Settings Fetch**: Popup now requests settings via background messaging instead of direct storage reads.
+- **Import Merge Source**: Import merges against background `getSnoozedTabs` data to avoid overwriting V2 state.
+- **Startup Recovery**: Invalid `snoooze_v2` triggers backup recovery and queues a pending notification on startup.
 
 ## v0.2.8
 

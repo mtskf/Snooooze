@@ -138,3 +138,13 @@ Documents significant architectural decisions made during development.
 - **Context**: Popup read settings from `chrome.storage.local` directly, which drifted from the V2 data flow and bypassed the background’s adapter logic.
 - **Decision**: Fetch settings through the background message API (`getSettings`) to keep a single access path for UI state.
 - **Consequences**: Popup stays consistent with background-managed defaults and avoids direct storage coupling.
+
+## ADR-024: Import Merge Uses Background Data
+- **Context**: Import previously merged against `chrome.storage.local.snoozedTabs` (legacy) and could overwrite current V2 data.
+- **Decision**: Fetch current data via the background (`getSnoozedTabs`) before merge, then persist with `setSnoozedTabs`.
+- **Consequences**: Import respects the V2 source of truth and avoids data loss when legacy keys are absent.
+
+## ADR-025: Startup V2 Recovery Notification
+- **Context**: Corrupt V2 data was not triggering recovery or user notification on startup.
+- **Decision**: Validate `snoooze_v2` in `initStorage()` and, on failure, recover from backups and set `pendingRecoveryNotification` in session storage.
+- **Consequences**: Recovery runs automatically on startup and a user-facing notification can be shown by the service worker.

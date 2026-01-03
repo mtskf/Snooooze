@@ -241,6 +241,16 @@ export async function setSettings(val) {
 export async function initStorage() {
   const all = await chrome.storage.local.get(null);
 
+  const validation = validateSnoozedTabsV2(all.snoooze_v2);
+  if (all.snoooze_v2 && !validation.valid) {
+      const recovery = await recoverFromBackup();
+      if (chrome.storage?.session?.set) {
+          await chrome.storage.session.set({
+              pendingRecoveryNotification: recovery.tabCount
+          });
+      }
+  }
+
   // Clean start or Migration
   if (all.snoozedTabs && !all.snoooze_v2) {
       console.log('Migrating Legacy -> V2');
