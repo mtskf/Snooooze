@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **StorageService**: New `src/utils/StorageService.js` to centralize import/export parsing, validation, and merge behavior, with dedicated tests.
 
+### Fixed
+- **Defensive Storage Access**: `getStorageV2` now validates structure and ensures `items`/`schedule` are always valid objects, preventing crashes when storage is corrupted or partially missing.
+
 ### Changed
 - **Options Import/Export**: Options page now delegates import/export to `StorageService`, simplifying UI logic and ensuring consistent validation/sanitization.
 - **Popup Settings Fetch**: Popup now requests settings via background messaging instead of direct storage reads.
