@@ -55,6 +55,8 @@ import GlobalShortcutSettings from "./GlobalShortcutSettings";
 import SnoozeActionSettings from "./SnoozeActionSettings";
 import AppearanceSettings from "./AppearanceSettings";
 import { Kbd } from "@/components/ui/kbd";
+import { validateSnoozedTabs } from "@/utils/validation";
+
 export default function Options() {
   const [snoozedTabs, setSnoozedTabs] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -183,8 +185,10 @@ export default function Options() {
       try {
         const importedTabs = JSON.parse(e.target.result);
 
-        if (!validateImportData(importedTabs)) {
-          throw new Error("Invalid data structure");
+        const validation = validateSnoozedTabs(importedTabs);
+        if (!validation.valid) {
+             console.error("Validation errors:", validation.errors);
+             throw new Error("Invalid data structure");
         }
 
         chrome.storage.local.get("snoozedTabs", (res) => {
@@ -234,29 +238,6 @@ export default function Options() {
     event.target.value = ""; // Reset file input
   };
 
-  const validateImportData = (data) => {
-    if (!data || typeof data !== "object") return false;
-
-    for (const [key, value] of Object.entries(data)) {
-      if (key === "tabCount") {
-        if (typeof value !== "number") return false;
-        continue;
-      }
-
-      // Key must be a timestamp (number-like string)
-      if (isNaN(parseInt(key))) return false;
-
-      // Value must be an array of objects
-      if (!Array.isArray(value)) return false;
-      for (const item of value) {
-        if (typeof item !== "object" || !item.url || !item.title) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-
   const filteredTabs = React.useMemo(() => {
     if (!searchQuery) return snoozedTabs;
     const keywords = searchQuery
@@ -268,6 +249,7 @@ export default function Options() {
     const filtered = { tabCount: 0 };
     Object.keys(snoozedTabs).forEach((key) => {
       if (key === "tabCount") return;
+      if (!Array.isArray(snoozedTabs[key])) return; // Safety check
       const tabs = snoozedTabs[key].filter((t) => {
         const title = (t.title || "").toLowerCase();
         const url = (t.url || "").toLowerCase();

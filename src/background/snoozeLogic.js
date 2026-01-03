@@ -85,6 +85,22 @@ export async function setSnoozedTabs(val) {
   await chrome.storage.local.set({ snoozedTabs: val });
   // Schedule debounced backup rotation
   scheduleBackupRotation(val);
+  updateBadge();
+}
+
+/**
+ * Update the extension badge with the current tab count
+ */
+export async function updateBadge() {
+  const settings = await getSettings();
+  if (settings && settings.badge === "false") {
+    await chrome.action.setBadgeText({ text: "" });
+    return;
+  }
+  const snoozedTabs = await getSnoozedTabs();
+  const count = snoozedTabs && snoozedTabs.tabCount ? snoozedTabs.tabCount : 0;
+  await chrome.action.setBadgeText({ text: count > 0 ? count.toString() : "" });
+  await chrome.action.setBadgeBackgroundColor({ color: "#FED23B" });
 }
 
 /**
@@ -241,6 +257,7 @@ export async function getSettings() {
 
 export async function setSettings(val) {
   await chrome.storage.local.set({ settings: val });
+  updateBadge();
 }
 
 // Initialization

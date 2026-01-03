@@ -11,6 +11,7 @@ export function useKeyboardNavigation({
   handleOneMinuteSnooze,
   setIsCalendarOpen,
   setCalendarScope,
+  isCalendarOpen,
   pickDateShortcut,
   snoozedItemsShortcut,
   settingsShortcut,
@@ -20,6 +21,7 @@ export function useKeyboardNavigation({
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === "INPUT") return; // Don't trigger when typing
+      if (isCalendarOpen) return; // Disable shortcuts when calendar is open
 
       let key = e.key.toUpperCase();
       const totalOptions = items.length + 1; // items + Pick Date
