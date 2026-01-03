@@ -89,11 +89,6 @@ Documents significant architectural decisions made during development.
 - **Decision**: Replace local validation with the shared `validateSnoozedTabs` from `src/utils/validation.js`.
 - **Consequences**: Import now enforces the same strict schema as the backup/recovery system. Invalid imports are rejected with detailed error logging. Single source of truth for data validation.
 
-## ADR-015: Badge Text Updates (REVERTED)
-- **Context**: The badge count was stored in `tabCount` but never displayed.
-- **Decision**: Initially implemented `updateBadge()` to show count.
-- **Reversion**: Feature was causing issues and accidental complexity during refactors. Decision was made to **remove** the badge logic entirely to keep the extension simple and performance-focused (avoiding unnecessary wake-ups or permission issues).
-- **Consequences**: Badge logic removed from `snoozeLogic.js`, `serviceWorker.js`, and `Options.jsx`. `tabCount` remains internal-only.
 
 ## ADR-016: Calendar Keyboard Conflict Resolution
 - **Context**: When the DatePicker calendar was open, global keyboard shortcuts (Arrow keys, Enter, letter shortcuts) still fired, causing accidental snoozes or focus jumps.

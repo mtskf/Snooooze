@@ -18,10 +18,7 @@ describe('Storage Helpers', () => {
           set: vi.fn().mockResolvedValue(undefined),
         },
       },
-      action: {
-        setBadgeText: vi.fn().mockResolvedValue(undefined),
-        setBadgeBackgroundColor: vi.fn().mockResolvedValue(undefined),
-      },
+
     };
   });
 

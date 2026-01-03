@@ -21,10 +21,7 @@ const chromeMock = {
     create: vi.fn(),
     remove: vi.fn(),
   },
-  action: {
-    setBadgeText: vi.fn().mockResolvedValue(undefined),
-    setBadgeBackgroundColor: vi.fn().mockResolvedValue(undefined),
-  },
+
   windows: {
     getLastFocused: vi.fn(),
     create: vi.fn(),
