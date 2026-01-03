@@ -3,7 +3,8 @@
 ## Core
 - **Runtime**: Chrome Extension Manifest V3
 - **Language**: JavaScript (ESNext)
-- **Framework**: React 18, Vite
+- **Framework**: React 18
+- **Bundler**: Vite (CRXJS plugin)
 
 ## Styling & UI
 - **CSS Engine**: Tailwind CSS
@@ -17,7 +18,6 @@
 
 ## Tooling
 - **Package Manager**: pnpm
-- **Build**: CRXJS Vite Plugin
 - **Lint/Format**: ESLint, Prettier
 - **Testing**: Vitest (Recommended)
 

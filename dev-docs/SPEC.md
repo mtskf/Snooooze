@@ -56,12 +56,12 @@ To prevent frustration when working late (e.g., at 2 AM), "Tomorrow" refers to t
 
 ### 4.1. Trigger
 - An alarm (`popCheck`) runs every **1 minute**.
-- Checks for any snoozed items with `timestamp < Date.now()`.
+- Checks for any snoozed items with `popTime <= Date.now()`.
 - Skips restore if already restoring or if the browser is offline.
 
 ### 4.2. Grouping & Window Restoration
 - Tabs snoozed as a "Window" share a `groupId`.
-- *Current Behavior:* Tabs with a `groupId` (Snoozed as Window) are restored together in a **new window**. Ungrouped tabs (Snoozed as Selection) are restored into the last focused window. The "Open in New Tab" setting has been removed; behavior is strictly scope-based.
+- Tabs with a `groupId` (Snoozed as Window) are restored together in a **new window**. Ungrouped tabs (Snoozed as Selection) are restored into the last focused window. The "Open in New Tab" setting has been removed; behavior is strictly scope-based.
 - **No Confirmation for Single Group Deletion:** Deleting a single window group does not show a confirmation dialog. "Delete All" still requires confirmation.
 
 ## 5. UI & Themes

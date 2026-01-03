@@ -28,7 +28,7 @@ Blazing fast shortcuts. Press Cmd/Ctrl + . to open, then single keys (L for Late
 View all pending tabs in a clean, organized list. Restore or delete them early if you change your mind.
 
 🎨 Personalized Themes
-Customize your experience with sleek Dark Mode 🌙, vibrant Vivid colors 🌈, or an urgency-focused Heatmap 🔥.
+Customize your experience with the calm Default (Neo Carbon) theme 🌙, vibrant Vivid colors 🌈, or an urgency-focused Heatmap 🔥.
 
 🌍 Timezone Aware
 Works perfectly wherever you are. "8:00 AM" means your 8:00 AM.
@@ -54,7 +54,7 @@ All data is stored locally on your device. No cloud ☁️, no tracking 👀, co
 
 == 🆕 WHAT'S NEW ==
 
-v0.2.8 🐛 Bug Fixes: Fixed storage safety issues, improved keyboard shortcuts, and added badge count display. Your snoozed tab count now shows on the extension icon!
+v0.2.8 🐛 Bug Fixes: Storage safety fixes, improved restore reliability, and smoother keyboard shortcut handling.
 
 v0.2.7 ⚠️ Storage Warning: Snooooze now monitors your storage usage and warns you if you're approaching the limit, ensuring your tabs are always safe.
 

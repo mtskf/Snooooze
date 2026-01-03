@@ -1,6 +1,6 @@
 # TODO
 
-## Known Issues
+## Resolved Issues
 
 - [x] Popupで`getSettings`が取得できない場合、`start-day/end-day`のフォールバックが`DEFAULT_SETTINGS`と不一致（UI表示と実際のsnooze時刻がズレる可能性）。`src/popup/Popup.jsx` ✅
 

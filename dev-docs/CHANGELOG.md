@@ -87,7 +87,7 @@ All notable changes to this project will be documented in this file.
 - **Synchronous Fix**: Removed incorrect `async` from `removeSnoozedTab()` (it was synchronous).
 - **Comments**: Fixed duplicate comment numbering and added clarifying comments for mutex pattern.
 
-## [v0.2.3] - 2025-12-27
+## v0.2.3 - 2025-12-27
 
 ### Added
 - **Refactoring**: Consolidated storage helper functions in `snoozeLogic.js` (exported and shared with `serviceWorker.js`).
@@ -110,7 +110,7 @@ All notable changes to this project will be documented in this file.
 - **Delete Confirmation**: Removed confirmation dialog for single window group deletion.
 - **Tomorrow Evening**: Removed "Tomorrow Evening" option to simplify choices.
 
-## [v0.2.2] - 2025-12-22
+## v0.2.2 - 2025-12-22
 
 ### Added
 - **Appearance Settings**: Visual theme selection (Default, Vivid, Warm Heatmap).
@@ -121,12 +121,18 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **Options Layout**: Fixed panel width to prevent layout shifts.
 
-## [v0.1.0] - 2025-12-16
+## v0.1.0 - 2025-12-16
 
 ### Added
 - **Landing Page**: New "How to Use" section, mobile optimizations, and Intercom integration.
 - **Website Link**: Added link to official GitHub Pages site in README and Options.
 - **Mobile Optimization**: Improved Hero section layout for small screens (<480px).
+- **Direct Restoration**: Tabs now restore automatically without notifications.
+- **Manual Check (Dev)**: Added (and later removed) debug tools for restoration testing.
+- **Snoozed Search**: Added real-time search filtering for snoozed tabs with space/comma-delimited multi-keyword support.
+- **Pick Date Shortcut**: Added "Pick Date" to configurable keyboard shortcuts in Settings.
+- **Snoozed Button**: Added "Snoozed" button to Popup header with count badge (displays 999+ for large counts).
+- **Shift+Shortcut**: Hold Shift while pressing shortcuts to snooze entire window instead of selected tabs.
 
 ### Changed
 - **Version**: Bumped to v0.1.0 Beta for Chrome Web Store release.
@@ -135,45 +141,29 @@ All notable changes to this project will be documented in this file.
 - **DST Support**: Integrated `date-fns-tz` for accurate Daylight Saving Time calculations and display.
 - **Dynamic Offsets**: Timezone list now maps current GMT offsets (e.g., `(GMT +9:00)`).
 - **Export/Import**: Export and import snoozed tabs in OneTab-compatible format (`URL | Title`).
-- **Shift+Shortcut**: Hold Shift while pressing shortcuts to snooze entire window instead of selected tabs.
-- **Snoozed Button**: Added "Snoozed" button to Popup header with count badge (displays 999+ for large counts).
 - **Overdue Restoration**: Tabs past their scheduled snooze time are now restored immediately on browser startup.
-
-### Changed
 - **Settings Layout**: Morning, Evening, and Timezone settings are now on a single row.
 - **Popup Scope UI**: Reduced button size, added "Default" / "Hold Shift" labels under scope selection.
 - **Popup Title**: Changed to "Snooooze" with playful branding.
 - **Settings Button**: Now opens directly to the Settings tab (using URL hash).
 - **UI Refresh**: Applied "Neo Carbon" dark theme for modern aesthetic.
 - **SelectLabel Styling**: Darkened timezone group labels for better visual hierarchy.
-
-### Removed
-- **Badge Count**: Removed unread badge count from extension icon.
-- **Radio Indicators**: Visually hidden radio buttons in scope selection (functionality preserved).
-
-### Fixed
-- **Race Condition**: Fixed data loss when snoozing multiple tabs simultaneously.
-### Added
-- **Direct Restoration**: Tabs now restore automatically without notifications.
-- **Manual Check (Dev)**: Added (and later removed) debug tools for restoration testing.
-
-### Changed
 - **Shortcuts**: Reverted default shortcut to `Command + Period` (Mac) / `Ctrl + Period` (Win/Linux).
 - **Export/Import**: Reverted buttons to `Secondary` style.
 - **Options Layout**: Restored horizontal layout for Data Management buttons.
-
-### Removed
-- **Notifications**: Removed notification-based restoration logic.
-- **OneTab Support**: Export/Import now uses JSON format to preserve timestamps.
-- **Debug UI**: Removed "Check Now" button.
-### Added
-- **Snoozed Search**: Added real-time search filtering for snoozed tabs with space/comma-delimited multi-keyword support.
-- **Pick Date Shortcut**: Added "Pick Date" to configurable keyboard shortcuts in Settings.
-
-### Changed
 - **Hotkeys**: Simplified from dual (number+letter) to single letter shortcuts (L, E, T, S, N, W, M, P).
 - **Calendar UI**: Replaced Popover with a custom modal overlay for better visibility and focus management.
 - **Calendar Logic**: Implemented `captionLayout="dropdown-buttons"` with a custom Shadcn-compatible Dropdown component for intuitive year/month navigation.
 - **Calendar Escape**: Pressing Escape now closes only the calendar, not the entire popup.
 - **Options Layout**: Refined "Snooze Timing" into "Start Day" and "End Day" rows, and aligned "Keyboard Shortcuts" for consistent UI flow.
 - **ShortcutEditor**: Added icons with colors matching Popup styling to the Keyboard Shortcuts section.
+
+### Removed
+- **Badge Count**: Removed unread badge count from extension icon.
+- **Radio Indicators**: Visually hidden radio buttons in scope selection (functionality preserved).
+- **Notifications**: Removed notification-based restoration logic.
+- **OneTab Support**: Export/Import now uses JSON format to preserve timestamps.
+- **Debug UI**: Removed "Check Now" button.
+
+### Fixed
+- **Race Condition**: Fixed data loss when snoozing multiple tabs simultaneously.

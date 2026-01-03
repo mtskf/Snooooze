@@ -39,7 +39,6 @@ Snooooze/
 - **Shared Config**: `DEFAULT_SETTINGS` imported from `constants.js`
 - **Helper**: `getTabsByGroupId()` extracts tabs by group ID
 - **Backup System**: Debounced 3-generation rotating backups with auto-recovery
-- **Backup System**: Debounced 3-generation rotating backups with auto-recovery
 - **Null Safety**: All storage operations guard against missing/corrupted data
 - **Startup Recovery**: `initStorage()` validates `snoooze_v2` and invokes backup recovery + session notification when invalid
 
@@ -116,8 +115,8 @@ Snooooze/
 
 ### Snooze Flow
 1. User selects scope (tabs/window) and time option
-3. Service worker generates a UUID and stores tab data in `items` map and `schedule` index (V2 Normalized Schema).
-4. Tab is closed (ONLY after successful storage save); popup window closes
+2. Service worker generates a UUID and stores tab data in `items` map and `schedule` index (V2 Normalized Schema)
+3. Tab is closed (ONLY after successful storage save); popup window closes
 
 ### Restore Flow
 1. `popCheck` alarm fires (every 1 min, or on startup)

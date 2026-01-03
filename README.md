@@ -37,7 +37,7 @@
 
 Declutter your browser and your mind. **Snooooze** helps you focus on the task at hand by temporarily stashing tabs away until you actually need them. No more "I'll read this later" tabs clogging your RAM.
 
-- **🎨 Personalized Themes**: Choose between sleek Dark Mode, vibrant Vivid, or urgency-focused Warm Heatmap.
+- **🎨 Personalized Themes**: Choose between the calm Default theme, vibrant Vivid, or urgency-focused Warm Heatmap.
 - **⚡️ Zero Friction**: Snooze standard tabs or entire windows with keyboard shortcuts.
 - **🔒 Privacy First**: All data is stored locally on your device. Nothing touches the cloud.
 
@@ -51,7 +51,7 @@ Declutter your browser and your mind. **Snooooze** helps you focus on the task a
 | **🔄 Auto Restoration** | Tabs magically reappear at the scheduled time—even if your computer was sleeping. |
 | **🌍 Timezone Aware** | Automatically detects your system timezone. "8:00 AM" means *your* 8:00 AM, wherever you are. |
 | **📥 Inbox Zero** | View pending tabs in a clean list. Delete or restore them early if you change your mind. |
-| **💾 Backup & Sync** | Export your data to JSON to transfer between devices or keep safe. |
+| **💾 Backup & Export** | Export your data to JSON to transfer between devices or keep safe. |
 
 <br>
 
