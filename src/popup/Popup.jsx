@@ -148,8 +148,7 @@ export default function Popup() {
       setEndDayHour(parseTimeHour(settings["end-day"]));
     });
   }, []);
-    });
-  }, []);
+
 
   // Compute display items with visibility and dynamic labels
   const isEarlyMorning = currentHour < startDayHour;
