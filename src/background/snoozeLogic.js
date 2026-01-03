@@ -56,9 +56,28 @@ export async function checkStorageSize() {
 
 // --- V2 Storage Accessors (Internal) ---
 
+/**
+ * Retrieves V2 storage with defensive structure validation.
+ * Ensures items and schedule are always valid plain objects (not arrays),
+ * preventing crashes when storage is corrupted or partially missing.
+ */
 async function getStorageV2() {
     const res = await chrome.storage.local.get("snoooze_v2");
-    return res.snoooze_v2 || { items: {}, schedule: {} };
+    const data = res.snoooze_v2;
+
+    // Helper to validate plain object (not null, not array)
+    const isPlainObject = (v) => v && typeof v === 'object' && !Array.isArray(v);
+
+    // Handle completely missing or invalid data
+    if (!isPlainObject(data)) {
+        return { items: {}, schedule: {} };
+    }
+
+    // Ensure items and schedule are valid plain objects
+    return {
+        items: isPlainObject(data.items) ? data.items : {},
+        schedule: isPlainObject(data.schedule) ? data.schedule : {}
+    };
 }
 
 async function saveStorageV2(v2Data) {
