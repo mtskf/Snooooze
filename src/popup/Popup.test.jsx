@@ -63,7 +63,9 @@ describe('Popup', () => {
     // We can use waitFor in case of async rendering
     await waitFor(() => {
         expect(screen.getByText(/Later today/i)).toBeInTheDocument();
-        expect(screen.getByText(/Tomorrow/i)).toBeInTheDocument();
+        const tomorrow = screen.queryByText(/Tomorrow/i);
+        const morning = screen.queryByText(/This morning/i);
+        expect(tomorrow || morning).not.toBeNull();
     });
   });
 

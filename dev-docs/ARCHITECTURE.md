@@ -17,6 +17,7 @@ Snooooze/
 │   ├── components/ui/       # shadcn/ui components
 │   ├── utils/               # Shared utilities
 │   │   ├── timeUtils.js     # Time calculations
+│   │   ├── StorageService.js# Import/export helpers
 │   │   ├── validation.js    # Storage data validation
 │   │   └── constants.js     # Config, Defaults, Theme colors
 │   ├── lib/                 # shadcn utilities (cn)
@@ -49,7 +50,7 @@ Snooooze/
 ### Options (`Options.jsx`)
 - **Snoozed List**: Grouped by date, with delete/restore actions
 - **Settings**: Morning/Evening times, Appearance theme
-- **Export/Import**: JSON format (preserves timestamps)
+- **Export/Import**: JSON format (preserves timestamps) via `StorageService`
 - **URL Hash**: Supports `#settings` to open directly to Settings tab
 
 ## Data Storage

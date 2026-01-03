@@ -102,6 +102,7 @@ Defined in `src/utils/constants.js`.
 - **Strict Validation**: Imports are checked against strict schema (same as backups).
 - **Repair Mode**: If validation fails due to minor issues (e.g., `tabCount` mismatch, missing non-critical fields), the validator returns `repairable: true`.
 - **Sanitization**: User can choose to "Sanitize & Import". This recalculates the `tabCount` and filters out only the strictly invalid entries, preserving the rest.
+- **Implementation**: Import/export is centralized in `StorageService` (validate, sanitize, merge, and error handling). The Options UI delegates to this service and only shows success/error messages.
 
 ## 7. Storage & Limits
 

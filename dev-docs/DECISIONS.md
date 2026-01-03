@@ -128,3 +128,8 @@ Documents significant architectural decisions made during development.
     - If `valid: false` but `repairable: true`, the Options UI offers to "Sanitize & Import".
     - Sanitization recalculates `tabCount` and filters out strictly invalid entries while keeping the partial valid data.
 - **Consequences**: Better UX for users restoring backups from slightly different versions or manually edited files. Prevents "all or nothing" rejection.
+
+## ADR-022: Centralize Import/Export Logic
+- **Context**: `Options.jsx` contained file reading, JSON parsing, validation, sanitization, and merge logic, making UI code harder to maintain and test.
+- **Decision**: Move import/export workflows into `src/utils/StorageService.js` and keep the Options UI as a thin caller that only handles success/error messaging.
+- **Consequences**: Import/export behavior is reusable and testable in isolation. UI code is simpler, and validation/sanitization is consistently applied via the shared service.

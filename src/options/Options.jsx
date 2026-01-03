@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import logo from "../assets/logo.svg";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toaster } from "@/components/ui/sonner";
@@ -71,6 +71,16 @@ export default function Options() {
 
   const fileInputRef = React.useRef(null);
 
+  const fetchSnoozedTabs = useCallback(() => {
+    chrome.runtime.sendMessage({ action: "getSnoozedTabs" }, (response) => {
+      if (!response || response.error) {
+        setSnoozedTabs({ tabCount: 0 });
+        return;
+      }
+      setSnoozedTabs(response);
+    });
+  }, []);
+
   useEffect(() => {
     // Initial load using helper to ensure defaults (like timezone) are merged
     getSettings().then((mergedSettings) => {
@@ -79,9 +89,7 @@ export default function Options() {
       // but for now local state is sufficient as it will be saved on any change.
     });
 
-    chrome.storage.local.get(["snoozedTabs"], (res) => {
-      if (res.snoozedTabs) setSnoozedTabs(res.snoozedTabs);
-    });
+    fetchSnoozedTabs();
 
     chrome.commands.getAll((commands) => {
       const actionCommand = commands.find((c) => c.name === "_execute_action");
@@ -93,8 +101,9 @@ export default function Options() {
     // Listen for changes
     const listener = (changes, area) => {
       if (area === "local") {
-        if (changes.snoozedTabs)
-          setSnoozedTabs(changes.snoozedTabs.newValue || {});
+        if (changes.snoooze_v2 || changes.snoozedTabs) {
+          fetchSnoozedTabs();
+        }
         // For settings, we might want to re-merge if partial?
         // But usually changes.settings.newValue is the full object from set() actions.
         if (changes.settings) setSettings(changes.settings.newValue || {});
@@ -110,7 +119,7 @@ export default function Options() {
     });
 
     return () => chrome.storage.onChanged.removeListener(listener);
-  }, []);
+  }, [fetchSnoozedTabs]);
 
   const updateSetting = (key, value) => {
     const newSettings = { ...settings, [key]: value };
@@ -137,9 +146,7 @@ export default function Options() {
       },
       () => {
         // Manual refresh to ensure UI sync
-        chrome.storage.local.get(["snoozedTabs"], (res) => {
-          if (res.snoozedTabs) setSnoozedTabs(res.snoozedTabs);
-        });
+        fetchSnoozedTabs();
       }
     );
   };

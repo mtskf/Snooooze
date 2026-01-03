@@ -137,13 +137,12 @@ describe('snoozeLogic.js (V2)', () => {
             { [popTime]: [id] }
         ));
 
-        // Let restore happen
-        chromeMock.windows.create.mockResolvedValue({ id: 999, tabs: [{}] });
+        chromeMock.windows.getLastFocused.mockResolvedValue({ id: 999 });
 
         await popCheck();
 
-        expect(chromeMock.windows.create).toHaveBeenCalledWith(
-            expect.objectContaining({ url: [TAB_URL] })
+        expect(chromeMock.tabs.create).toHaveBeenCalledWith(
+            expect.objectContaining({ url: TAB_URL, windowId: 999 })
         );
 
         // Verify cleanup
