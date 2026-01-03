@@ -46,6 +46,7 @@ Snooooze/
 - **Snooze Options**: Later today, Evening, Tomorrow, Weekend, etc.
 - **Keyboard Shortcuts**: L, E, T, S, N, W, M, P for options, Shift+key for window scope
 - **Snoozed Counter**: Shows pending tab count (999+ for large numbers)
+- **Settings Fetch**: Uses `chrome.runtime.sendMessage({ action: "getSettings" })` to load settings from background
 
 ### Options (`Options.jsx`)
 - **Snoozed List**: Grouped by date, with delete/restore actions

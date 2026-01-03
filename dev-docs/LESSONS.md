@@ -11,6 +11,7 @@ Key insights and patterns learned during development. Read this before starting 
 - **Defensive Storage Access**: Never assume `getSnoozedTabs()` returns a valid object. Always check for `null`/`undefined` before accessing properties. Initialize to `{ tabCount: 0 }` when creating new entries.
 - **Centralize Validation**: Avoid duplicating validation logic (e.g., weak local validators in UI components). Use a shared utility (`src/utils/validation.js`) to ensure consistent schema enforcement across import, backup, and recovery.
 - **Delegate Heavy UI Logic**: File IO and data repair (import/export) should live in a shared service (`StorageService`) to keep UI components small and make the logic testable.
+- **Prefer Background as Source of Truth**: UI should fetch settings/state via background messages instead of direct `chrome.storage.local` reads to avoid drift.
 - **UI Tests Require DOM Setup**: Unit tests for React components (`Popup.jsx`, `Options.jsx`, `useKeyboardNavigation.js`) require `@testing-library/react` and `jsdom` environment. Vitest's default Node environment cannot render components.
 - **Promise Chain Mutexes**: When implementing a mutex pattern with `p = p.then(...)`, ALWAYS `.catch()` errors inside the chain update to prevent the persistent `p` from becoming rejected. If `p` rejects, all subsequent tasks chained to it will immediately reject, permanently locking the system.
 

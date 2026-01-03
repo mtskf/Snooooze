@@ -28,18 +28,6 @@ describe('Popup', () => {
     if (!global.chrome.tabs) global.chrome.tabs = {};
     if (!global.chrome.runtime) global.chrome.runtime = {};
 
-    // Mock chrome.storage.local.get to return valid settings for timeUtils
-    global.chrome.storage.local.get.mockImplementation((keys, callback) => {
-        const result = {
-            settings: {
-                'start-day': '8:00 AM',
-                timezone: 'UTC' // Default
-            }
-        };
-        if (callback) callback(result);
-        return Promise.resolve(result);
-    });
-
     // Mock tabs.query to support callback
     global.chrome.tabs.query.mockImplementation((query, callback) => {
         const tabs = [{ id: 1, url: 'https://example.com', title: 'Test Tab' }];
@@ -49,6 +37,15 @@ describe('Popup', () => {
 
     // Mock runtime.sendMessage to support callback
     global.chrome.runtime.sendMessage.mockImplementation((msg, callback) => {
+        if (msg?.action === 'getSettings') {
+            if (callback) {
+                callback({
+                    'start-day': '8:00 AM',
+                    timezone: 'UTC',
+                });
+            }
+            return;
+        }
         if (callback) callback();
     });
   });
@@ -66,6 +63,17 @@ describe('Popup', () => {
         const tomorrow = screen.queryByText(/Tomorrow/i);
         const morning = screen.queryByText(/This morning/i);
         expect(tomorrow || morning).not.toBeNull();
+    });
+  });
+
+  it('requests settings via runtime message on mount', async () => {
+    render(<Popup />);
+
+    await waitFor(() => {
+      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'getSettings' }),
+        expect.any(Function)
+      );
     });
   });
 

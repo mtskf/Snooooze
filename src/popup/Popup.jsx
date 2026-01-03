@@ -98,15 +98,16 @@ export default function Popup() {
 
   useEffect(() => {
     // Fetch settings and apply shortcuts/colors
-    chrome.storage.local.get(["snoozedTabs", "settings"], (result) => {
+    chrome.runtime.sendMessage({ action: "getSettings" }, (result) => {
+      if (!result || result.error) return;
       // Merge shortcuts
-      const userShortcuts = (result.settings || {}).shortcuts || {};
+      const userShortcuts = (result || {}).shortcuts || {};
       const finalShortcuts = { ...DEFAULT_SHORTCUTS, ...userShortcuts };
 
       setItems((prevItems) =>
         prevItems.map((item) => {
           let colorScheme = DEFAULT_COLORS;
-          const appSetting = (result.settings || {}).appearance;
+          const appSetting = (result || {}).appearance;
           if (appSetting === "vivid") colorScheme = VIVID_COLORS;
           if (appSetting === "heatmap") colorScheme = HEATMAP_COLORS;
           return {
@@ -118,7 +119,7 @@ export default function Popup() {
       );
 
       // Set appearance
-      setAppearance((result.settings || {}).appearance || "default");
+      setAppearance((result || {}).appearance || "default");
 
       // Set pick-date shortcut (empty string if not set)
       const pdShortcut = finalShortcuts["pick-date"]?.[0] || "";
@@ -138,8 +139,8 @@ export default function Popup() {
         if (meridian === "PM" && hour < 12) hour += 12;
         return hour;
       };
-      setStartDayHour(parseTimeHour((result.settings || {})["start-day"] || "8:00 AM"));
-      setEndDayHour(parseTimeHour((result.settings || {})["end-day"] || "5:00 PM"));
+      setStartDayHour(parseTimeHour((result || {})["start-day"] || "8:00 AM"));
+      setEndDayHour(parseTimeHour((result || {})["end-day"] || "5:00 PM"));
     });
   }, []);
 

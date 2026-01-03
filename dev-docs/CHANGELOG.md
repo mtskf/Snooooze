@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - **Options Import/Export**: Options page now delegates import/export to `StorageService`, simplifying UI logic and ensuring consistent validation/sanitization.
+- **Popup Settings Fetch**: Popup now requests settings via background messaging instead of direct storage reads.
 
 ## v0.2.8
 

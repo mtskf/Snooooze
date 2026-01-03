@@ -133,3 +133,8 @@ Documents significant architectural decisions made during development.
 - **Context**: `Options.jsx` contained file reading, JSON parsing, validation, sanitization, and merge logic, making UI code harder to maintain and test.
 - **Decision**: Move import/export workflows into `src/utils/StorageService.js` and keep the Options UI as a thin caller that only handles success/error messaging.
 - **Consequences**: Import/export behavior is reusable and testable in isolation. UI code is simpler, and validation/sanitization is consistently applied via the shared service.
+
+## ADR-023: Popup Settings via Background
+- **Context**: Popup read settings from `chrome.storage.local` directly, which drifted from the V2 data flow and bypassed the background’s adapter logic.
+- **Decision**: Fetch settings through the background message API (`getSettings`) to keep a single access path for UI state.
+- **Consequences**: Popup stays consistent with background-managed defaults and avoids direct storage coupling.

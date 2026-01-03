@@ -50,6 +50,7 @@ To prevent frustration when working late (e.g., at 2 AM), "Tomorrow" refers to t
     - Example: `T` snoozes selected tabs to Tomorrow. `Shift + T` snoozes the entire window to Tomorrow.
 - **DatePicker Scope Preservation:** When opening the DatePicker with `Shift + P`, the "Window" scope is preserved even after the Shift key is released. The scope at the time of opening is stored in `calendarScope` state.
 - **Configurable:** Default shortcuts live in `src/utils/constants.js` and can be customized in Options.
+- **Settings Source:** Popup reads settings via background messaging (`getSettings`) instead of direct storage access.
 
 ## 4. Restore Logic
 
