@@ -389,5 +389,35 @@ describe('snoozeLogic.js (V2)', () => {
 
             expect(result).toEqual({ count: 0 });
         });
+
+        test('getSnoozedTabs handles items as array (invalid)', async () => {
+            chromeMock.storage.local.get.mockResolvedValue({
+                snoooze_v2: { items: ['invalid'], schedule: {} }
+            });
+
+            const result = await getSnoozedTabs();
+
+            expect(result).toEqual({ tabCount: 0 });
+        });
+
+        test('getSnoozedTabs handles schedule as array (invalid)', async () => {
+            chromeMock.storage.local.get.mockResolvedValue({
+                snoooze_v2: { items: {}, schedule: ['invalid'] }
+            });
+
+            const result = await getSnoozedTabs();
+
+            expect(result).toEqual({ tabCount: 0 });
+        });
+
+        test('getSnoozedTabs handles snoooze_v2 as array (invalid)', async () => {
+            chromeMock.storage.local.get.mockResolvedValue({
+                snoooze_v2: ['invalid']
+            });
+
+            const result = await getSnoozedTabs();
+
+            expect(result).toEqual({ tabCount: 0 });
+        });
     });
 });
