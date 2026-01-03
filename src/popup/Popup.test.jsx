@@ -14,7 +14,16 @@ vi.mock('../utils/timeUtils', () => ({
   getSettings: vi.fn().mockResolvedValue({
       'start-day': '8:00 AM',
       'timezone': 'UTC'
-  })
+  }),
+  parseTimeString: vi.fn((timeStr) => {
+    if (!timeStr) return 8;
+    const parts = timeStr.split(/[\s:]+/);
+    let hour = parseInt(parts[0]);
+    const meridian = parts[2];
+    if (meridian === 'AM' && hour === 12) hour = 0;
+    if (meridian === 'PM' && hour < 12) hour += 12;
+    return hour;
+  }),
 }));
 
 vi.mock('@/components/ui/calendar', () => ({

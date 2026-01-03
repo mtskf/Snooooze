@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getTime, getSettings } from './timeUtils';
+import { getTime, getSettings, parseTimeString } from './timeUtils';
+import { DEFAULT_SETTINGS } from './constants';
 
 const originalIntl = global.Intl;
 
@@ -154,6 +155,41 @@ describe('timeUtils', () => {
       expect(settings['end-day']).toBe('5:00 PM');
       expect(settings.timezone).toBe('Mock/Zone');
       global.Intl = originalIntl;
+    });
+  });
+
+  describe('parseTimeString', () => {
+    it('parses AM time correctly', () => {
+      expect(parseTimeString('8:00 AM')).toBe(8);
+      expect(parseTimeString('9:30 AM')).toBe(9);
+      expect(parseTimeString('11:00 AM')).toBe(11);
+    });
+
+    it('parses PM time correctly', () => {
+      expect(parseTimeString('5:00 PM')).toBe(17);
+      expect(parseTimeString('6:30 PM')).toBe(18);
+      expect(parseTimeString('11:00 PM')).toBe(23);
+    });
+
+    it('handles 12 AM (midnight) correctly', () => {
+      expect(parseTimeString('12:00 AM')).toBe(0);
+    });
+
+    it('handles 12 PM (noon) correctly', () => {
+      expect(parseTimeString('12:00 PM')).toBe(12);
+    });
+
+    it('returns DEFAULT_SETTINGS start-day hour for null/undefined input', () => {
+      // DEFAULT_SETTINGS['start-day'] is '8:00 AM' = 8
+      const expectedDefault = parseTimeString(DEFAULT_SETTINGS['start-day']);
+      expect(parseTimeString(null)).toBe(expectedDefault);
+      expect(parseTimeString(undefined)).toBe(expectedDefault);
+      expect(parseTimeString('')).toBe(expectedDefault);
+    });
+
+    it('fallback should match DEFAULT_SETTINGS start-day (8:00 AM = 8)', () => {
+      // Explicit assertion that fallback is 8, not 9
+      expect(parseTimeString(null)).toBe(8);
     });
   });
 });

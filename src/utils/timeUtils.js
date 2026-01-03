@@ -98,21 +98,47 @@ function daysToNextDay(currentDay, nextDay) {
   }
 }
 
-function getSettingsTime(settingsTime) {
-  if (!settingsTime) return 9; // Fallback
-  var timeParts = settingsTime.split(/[\s:]+/);
-  var hour = parseInt(timeParts[0]);
-  var meridian = timeParts[2];
+/**
+ * Parses a time string (e.g., "8:00 AM") and returns the hour (0-23).
+ * Falls back to DEFAULT_SETTINGS['start-day'] hour if input is falsy.
+ * @param {string|null|undefined} timeStr - Time string in "H:MM AM/PM" format
+ * @returns {number} Hour in 24-hour format (0-23)
+ */
+export function parseTimeString(timeStr) {
+  // Fallback to DEFAULT_SETTINGS['start-day'] if input is falsy
+  // Use DEFAULT_START_HOUR which is computed at module load to avoid recursion
+  if (!timeStr) return DEFAULT_START_HOUR;
 
-  if (meridian == "AM" && hour == 12) {
+  const timeParts = timeStr.split(/[\s:]+/);
+  let hour = parseInt(timeParts[0]);
+  const meridian = timeParts[2];
+
+  if (meridian === "AM" && hour === 12) {
     hour = 0;
   }
 
-  if (meridian == "PM" && hour < 12) {
+  if (meridian === "PM" && hour < 12) {
     hour = hour + 12;
   }
 
   return hour;
+}
+
+// Compute default start hour once at module load (avoids recursion in parseTimeString)
+const DEFAULT_START_HOUR = (() => {
+  const timeStr = DEFAULT_SETTINGS['start-day'];
+  if (!timeStr) return 8; // Ultimate fallback if DEFAULT_SETTINGS is misconfigured
+  const timeParts = timeStr.split(/[\s:]+/);
+  let hour = parseInt(timeParts[0]);
+  const meridian = timeParts[2];
+  if (meridian === 'AM' && hour === 12) hour = 0;
+  if (meridian === 'PM' && hour < 12) hour += 12;
+  return hour;
+})();
+
+// Internal alias for backward compatibility
+function getSettingsTime(settingsTime) {
+  return parseTimeString(settingsTime);
 }
 
 function setSettingsTime(result, settingsTime) {
