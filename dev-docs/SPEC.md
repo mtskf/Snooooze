@@ -60,7 +60,7 @@ To prevent frustration when working late (e.g., at 2 AM), "Tomorrow" refers to t
 
 ### 4.2. Grouping & Window Restoration
 - Tabs snoozed as a "Window" share a `groupId`.
-- *Current Behavior:* Tabs with a `groupId` are restored together in a **new window**. Ungrouped tabs are restored into the last focused window (fallbacks to a new window if none is available). Options page actions can also restore or delete an entire group.
+- *Current Behavior:* Tabs with a `groupId` (Snoozed as Window) are restored together in a **new window**. Ungrouped tabs (Snoozed as Selection) are restored into the last focused window. The "Open in New Tab" setting has been removed; behavior is strictly scope-based.
 - **No Confirmation for Single Group Deletion:** Deleting a single window group does not show a confirmation dialog. "Delete All" still requires confirmation.
 
 ## 5. UI & Themes
@@ -80,11 +80,7 @@ Defined in `src/utils/constants.js`.
     - `Tomorrow`: Orange
     - `Weekend`: Yellow (Warm)
 
-### 5.2. Badge
-- Badge background is set to `#FED23B`.
-- Badge text displays the current `tabCount` (number of snoozed tabs). Empty when count is 0.
-- Updated automatically on every `setSnoozedTabs` and `setSettings` call via `updateBadge()`.
-- Respects `settings.badge` preference ("true"/"false"). If "false", badge text is hidden.
+
 
 ## 6. Data Integrity
 
@@ -101,6 +97,11 @@ Defined in `src/utils/constants.js`.
 
 ### 6.3. Migration
 - On first run after update, if valid data exists but no backups, an initial backup is created.
+
+### 6.4. Import & Repair
+- **Strict Validation**: Imports are checked against strict schema (same as backups).
+- **Repair Mode**: If validation fails due to minor issues (e.g., `tabCount` mismatch, missing non-critical fields), the validator returns `repairable: true`.
+- **Sanitization**: User can choose to "Sanitize & Import". This recalculates the `tabCount` and filters out only the strictly invalid entries, preserving the rest.
 
 ## 7. Storage & Limits
 

@@ -37,7 +37,7 @@ Snooooze/
 - **Shared Config**: `DEFAULT_SETTINGS` imported from `constants.js`
 - **Helper**: `getTabsByGroupId()` extracts tabs by group ID
 - **Backup System**: Debounced 3-generation rotating backups with auto-recovery
-- **Badge Sync**: `updateBadge()` updates icon badge text on every storage/settings change
+- **Backup System**: Debounced 3-generation rotating backups with auto-recovery
 - **Null Safety**: All storage operations guard against missing/corrupted data
 
 ### Popup (`Popup.jsx`)
@@ -59,7 +59,7 @@ Snooooze/
 {
   "tabCount": 42,
   "1702700400000": [  // timestamp as key
-    { url, title, favIconUrl, creationTime, openInNewWindow }
+    { url, title, favIconUrl, creationTime }
   ]
 }
 ```
@@ -70,7 +70,6 @@ Snooooze/
   "start-day": "8:00 AM",
   "end-day": "5:00 PM",
   "timezone": "Australia/Sydney",
-  "open-new-tab": "true",
   "appearance": "heatmap"
 }
 ```
@@ -101,15 +100,14 @@ Snooooze/
 
 ### Snooze Flow
 1. User selects scope (tabs/window) and time option
-2. Popup queries tabs, sends `snooze` message to service worker
-3. Service worker stores tabs under timestamp key
-4. Tab is closed; popup window closes
+3. Service worker stores tabs under timestamp key (throws error if fails)
+4. Tab is closed (ONLY after successful storage save); popup window closes
 
 ### Restore Flow
 1. `popCheck` alarm fires (every 1 min, or on startup)
 2. Checks timestamps < `Date.now()`
-3. **Directly restores tabs** (Current Window or New Window based on settings)
-4. Removes from storage
+3. **Directly restores tabs** (Current Window or New Window based on Snooze Scope)
+4. Removes from storage (ONLY if restoration succeeded)
 
 ## Technologies
 - **React** + **Vite** for UI

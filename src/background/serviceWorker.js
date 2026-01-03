@@ -15,7 +15,6 @@ import {
   getSettings,
   setSettings,
   getValidatedSnoozedTabs,
-  updateBadge,
 } from "./snoozeLogic";
 
 // Initialize extension
@@ -74,7 +73,6 @@ async function handleMessage(request, sendResponse) {
         await snooze(
           request.tab,
           request.popTime,
-          request.openInNewWindow,
           request.groupId
         );
         sendResponse({ success: true });
@@ -93,10 +91,6 @@ async function handleMessage(request, sendResponse) {
         break;
       case "restoreWindowGroup":
         await restoreWindowGroup(request.groupId);
-        sendResponse({ success: true });
-        break;
-      case "updateBadgeText":
-        await updateBadge();
         sendResponse({ success: true });
         break;
 

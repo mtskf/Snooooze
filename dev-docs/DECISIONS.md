@@ -7,12 +7,12 @@ Documents significant architectural decisions made during development.
 - **Decision**: We reverted this change.
 - **Consequences**: Snoozed tabs are stored and displayed individually. This simplifies the restoration logic and gives users more granular control over individual tabs, while still allowing them to snooze a whole window at once (creates multiple individual snooze entries).
 
-## ADR-002: Global Restoration Context
-- **Context**: Tabs could be restored in "Current Window" or "New Window". Originally this was partly dependent on whether they were snoozed as a window.
-- **Decision**: The "Open in New Tab" setting in Options now globally dictates the restoration target.
-    - If ON: All tabs restore in the *Current Window* (as new tabs).
-    - If OFF: All tabs restore in a *New Window*.
-- **Consequences**: Behavior is predictable and user-configurable globally, rather than context-dependent.
+## ADR-002: Restoration Target by Scope
+- **Context**: Users snooze either selected tabs or an entire window. The restore target should stay consistent with that scope.
+- **Decision**: Restoration is based on snooze scope, not a global setting.
+    - **Window snoozes** restore in a *new window* to preserve the group context.
+    - **Single/selected snoozes** restore into the *last focused window*.
+- **Consequences**: Behavior is predictable and aligns with the original snooze intent. The Options "Open in New Tab" setting does not control restoration.
 
 ## ADR-003: Timezone Handling
 - **Context**: Browsers run on system time, but accurate timezone handling can be complex.
@@ -89,12 +89,11 @@ Documents significant architectural decisions made during development.
 - **Decision**: Replace local validation with the shared `validateSnoozedTabs` from `src/utils/validation.js`.
 - **Consequences**: Import now enforces the same strict schema as the backup/recovery system. Invalid imports are rejected with detailed error logging. Single source of truth for data validation.
 
-## ADR-015: Badge Text Updates
-- **Context**: The badge count was stored in `tabCount` but never displayed on the extension icon. Users had no quick visual indicator of pending snoozed tabs.
-- **Decision**: Implement `updateBadge()` in `snoozeLogic.js` that reads settings and tab count, then calls `chrome.action.setBadgeText`.
-    - Called automatically from `setSnoozedTabs` and `setSettings`.
-    - Respects `settings.badge === "false"` to hide the badge if user prefers.
-- **Consequences**: Badge is always in sync with storage. Adding a new message handler `updateBadgeText` was unnecessary but harmless (forwards to the same function).
+## ADR-015: Badge Text Updates (REVERTED)
+- **Context**: The badge count was stored in `tabCount` but never displayed.
+- **Decision**: Initially implemented `updateBadge()` to show count.
+- **Reversion**: Feature was causing issues and accidental complexity during refactors. Decision was made to **remove** the badge logic entirely to keep the extension simple and performance-focused (avoiding unnecessary wake-ups or permission issues).
+- **Consequences**: Badge logic removed from `snoozeLogic.js`, `serviceWorker.js`, and `Options.jsx`. `tabCount` remains internal-only.
 
 ## ADR-016: Calendar Keyboard Conflict Resolution
 - **Context**: When the DatePicker calendar was open, global keyboard shortcuts (Arrow keys, Enter, letter shortcuts) still fired, causing accidental snoozes or focus jumps.
@@ -107,3 +106,30 @@ Documents significant architectural decisions made during development.
     - `addSnoozedTab`: Initialize to `{ tabCount: 0 }` if missing.
     - `removeSnoozedTabWrapper`, `removeWindowGroup`, `restoreWindowGroup`: Return early if missing.
 - **Consequences**: Extension is resilient to storage clearing (via DevTools or browser reset). No crashes, no data corruption—just graceful no-ops.
+
+## ADR-018: Prioritize Storage Persistence (Safe Snooze)
+- **Context**: Previous implementation closed the tab *before* confirming it was saved to storage. If the storage write failed (e.g., quota exceeded), the user lost the tab permanently.
+- **Decision**: Invert the order of operations in `snooze()`.
+    1. Write to `chrome.storage.local`.
+    2. Wait for success/mutex release.
+    3. Close the tab.
+- **Consequences**: If storage fails, the write promise rejects, the error is caught, and the tab **remains open**. Data safety is prioritized over UI responsiveness (though the delay is usually negligible).
+
+## ADR-019: Fail-Safe Restoration
+- **Context**: During restoration (`popCheck`), if creating a new window or tab failed (e.g., invalid URL), the entire batch was sometimes removed from storage, causing data loss.
+- **Decision**: `restoreTabs` now tracks success/failure per tab.
+    - Only successfully restored tabs are removed from storage.
+    - Tabs that throw errors during creation remain in storage (preserved).
+- **Consequences**: Ensures zero data loss even in edge cases (browser glitches, invalid restored URLs). Failed tabs stay in the list (or reappear) so the user can try again or manually copy the URL.
+
+## ADR-020: Remove "Open in New Tab" Setting
+- **Context**: The codebase contained an `openInNewWindow` flag and setting, but it was inconsistently applied and effectively unused by the restoration logic (which enforces New Window for groups and Last Focused for singles).
+- **Decision**: Clean up the codebase by completely removing the `openInNewWindow` parameter and setting.
+- **Consequences**: Reduced cognitive load and potential for bugs. Restoration behavior is now purely determined by **Snooze Scope** (see ADR-002), which is the intended design.
+
+## ADR-021: Repairable Import Validation
+- **Context**: Users trying to import `snoozedTabs` JSON sometimes faced rejection due to minor inconsistencies (e.g., `tabCount` mismatch) even if the tab data itself was valid.
+- **Decision**: Enhance `validateSnoozedTabs` to return a `repairable` flag.
+    - If `valid: false` but `repairable: true`, the Options UI offers to "Sanitize & Import".
+    - Sanitization recalculates `tabCount` and filters out strictly invalid entries while keeping the partial valid data.
+- **Consequences**: Better UX for users restoring backups from slightly different versions or manually edited files. Prevents "all or nothing" rejection.
