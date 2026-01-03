@@ -3,6 +3,7 @@
 ## Code review
 - [ ] 096dbf62f9914589555d2496226e0906bcea7223
 - [ ] 72f168fbe7eaba7a2eff924f4bc918bbacf2597e
+- [ ] a4c941c1b858709ba946e4d84981f4fc86b9cfcb
 
 ## Known Issues
 
@@ -13,7 +14,7 @@
 - [x] Low: `snoozeLogic.js` L7 に古いコメント (`// Default settings...`) が残っている。削除推奨。
     - Resolved: Stale comment removed.
 - [x] Low: 設定が未初期化の時に `getSettings` が `undefined` を返しうるため、Popup側でデフォルトが反映されない可能性がある。
-    - Resolved: `getSettings` now returns `DEFAULT_SETTINGS` as fallback.
+    - Resolved: Popup already handles undefined gracefully with `(result || {})`. `initStorage` writes defaults to storage on first run.
 
 ## Refactoring Opportunities
 
