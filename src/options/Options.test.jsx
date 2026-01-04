@@ -18,7 +18,14 @@ vi.mock('@/utils/StorageService', () => ({
 }));
 
 vi.mock('./TimeSettings', () => ({
-  default: () => null,
+  default: ({ updateSetting = () => {} }) => (
+    <button
+      data-testid="test-update-setting"
+      onClick={() => updateSetting('start-day', '9:00 AM')}
+    >
+      Test Update Setting
+    </button>
+  ),
 }));
 vi.mock('./GlobalShortcutSettings', () => ({
   default: () => null,
@@ -279,5 +286,41 @@ describe('Options', () => {
     expect(global.alert).toHaveBeenCalledWith(
       'Failed to import: The file contains invalid data.'
     );
+  });
+
+  it('should use setSettings message API instead of direct chrome.storage.local.set', async () => {
+    const localSetSpy = vi.spyOn(global.chrome.storage.local, 'set');
+    const sendMessageSpy = vi.spyOn(global.chrome.runtime, 'sendMessage');
+
+    // Set hash to open Settings tab by default
+    window.location.hash = '#settings';
+
+    render(<Options />);
+
+    // Wait for test button to appear (Settings tab is active by default)
+    await waitFor(() => {
+      expect(screen.getByTestId('test-update-setting')).toBeInTheDocument();
+    });
+
+    // Clear previous sendMessage calls from initial load
+    sendMessageSpy.mockClear();
+    localSetSpy.mockClear();
+
+    // Trigger updateSetting by clicking the test button
+    fireEvent.click(screen.getByTestId('test-update-setting'));
+
+    // Should call setSettings message
+    expect(sendMessageSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'setSettings',
+        data: expect.objectContaining({ 'start-day': '9:00 AM' })
+      })
+    );
+
+    // Should NOT call chrome.storage.local.set directly
+    expect(localSetSpy).not.toHaveBeenCalled();
+
+    // Clean up
+    window.location.hash = '';
   });
 });
