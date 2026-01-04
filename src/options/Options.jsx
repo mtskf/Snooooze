@@ -122,7 +122,7 @@ export default function Options() {
   const updateSetting = (key, value) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
-    chrome.storage.local.set({ settings: newSettings });
+    chrome.runtime.sendMessage({ action: 'setSettings', data: newSettings });
   };
 
   const clearTab = (tab) => {
