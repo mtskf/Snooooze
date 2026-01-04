@@ -137,3 +137,11 @@ Snooooze/
 - **shadcn/ui** + **Tailwind CSS** for components
 - **lucide-react** for icons
 - **Chrome Extension Manifest V3**
+
+## Communication Patterns
+
+### Message Passing (`messages.js`)
+- **Centralized Contracts**: All communication between UI and Background uses typed contracts defined in `messages.js`.
+- **Action Constants**: `MESSAGE_ACTIONS` (e.g., `GET_SETTINGS`, `SNOOZE`) prevent magic string typos.
+- **Type Safety**: `validateMessageRequest` ensures payloads match expected shapes before processing.
+- **Handlers**: `MESSAGE_HANDLERS` map actions to logic, allowing dependency injection for easier testing.

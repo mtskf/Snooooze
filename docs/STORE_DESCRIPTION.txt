@@ -54,6 +54,8 @@ All data is stored locally on your device. No cloud ☁️, no tracking 👀, co
 
 == 🆕 WHAT'S NEW ==
 
+v0.3.0 🛠️ Deep Refactor: Complete overhaul of internal architecture for maximum stability. Improved error handling and robust restoration logic means your tabs are safer than ever.
+
 v0.2.8 🐛 Bug Fixes: Storage safety fixes, improved restore reliability, and smoother keyboard shortcut handling.
 
 v0.2.7 ⚠️ Storage Warning: Snooooze now monitors your storage usage and warns you if you're approaching the limit, ensuring your tabs are always safe.

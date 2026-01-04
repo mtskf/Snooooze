@@ -13,6 +13,7 @@
 
 ## State & Logic
 - **Storage**: `chrome.storage.local` (V2 Normalized Schema: `items` + `schedule`)
+- **API Handling**: Centralized `ChromeApi` wrapper for robust error handling and types
 - **Time/Date**: Native `Intl` API, `date-fns`, `date-fns-tz`
 - **IDs**: Custom UUID generation (`src/utils/uuid.js`)
 

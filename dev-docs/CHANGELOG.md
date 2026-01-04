@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## v0.3.0 - 2026-01-04
+
+### Refactored
+- **Codebase Deep Review**: Comprehensive review and cleanup of `snoozeLogic.js`, `messages.js`, and `ChromeApi.js`.
+- **Error Handling**: Enhanced `timeUtils.js` to gracefully fallback to defaults when storage access fails.
+- **Chrome API**: Fully integrated `ChromeApi` wrapper across all logic and UI components, replacing direct `chrome.*` calls for better stability and testability.
+- **Type Definitions**: Consolidated `types.js` to import and use shared types throughout the app.
+
+### Fixed
+- **Settings Fallback**: Fixed potential crash in `getTime` when `getSettings` fails by adding robust error handling.
+- **Restoration Logic**: (Planned) Improved failure handling with retries and error dialogs.
+
+
 
 ### Added
 - **Message Passing Contracts**: New `src/messages.js` centralizes all message passing with `MESSAGE_ACTIONS` constants, `validateMessageRequest()`, `MESSAGE_HANDLERS` registry with dependency injection, and promise-based `sendMessage()` helper. Prevents typos, enables IDE autocomplete, and improves testability.
