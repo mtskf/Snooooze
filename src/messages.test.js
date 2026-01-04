@@ -164,6 +164,20 @@ describe('messages', () => {
       expect(mockService.getValidatedSnoozedTabs).toHaveBeenCalled();
     });
 
+    it('dispatches setSettings to the handler with payload', async () => {
+      const mockService = {
+        setSettings: vi.fn().mockResolvedValue(undefined),
+      };
+
+      const payload = { 'start-day': '9:00 AM', timezone: 'UTC' };
+      const request = { action: MESSAGE_ACTIONS.SET_SETTINGS, data: payload };
+
+      const result = await dispatchMessage(request, mockService);
+
+      expect(mockService.setSettings).toHaveBeenCalledWith(payload);
+      expect(result).toEqual({ success: true });
+    });
+
     it('throws error for invalid request', async () => {
       await expect(
         dispatchMessage({ action: 'invalid' }, {})
