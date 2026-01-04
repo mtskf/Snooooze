@@ -103,6 +103,9 @@ export default function Options() {
       if (actionCommand) {
         setExtensionShortcut(actionCommand.shortcut);
       }
+    }).catch((error) => {
+      console.error('Failed to load extension shortcut:', error);
+      // Extension shortcut remains null - UI will show "Not set"
     });
 
     // Listen for changes
@@ -123,6 +126,9 @@ export default function Options() {
     // Load size warning state
     storage.getLocal(["sizeWarningActive"]).then((res) => {
       setSizeWarningActive(res.sizeWarningActive || false);
+    }).catch((error) => {
+      console.error('Failed to load size warning state:', error);
+      // Warning state defaults to false
     });
 
     return () => chrome.storage.onChanged.removeListener(listener);

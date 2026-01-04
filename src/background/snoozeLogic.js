@@ -26,11 +26,17 @@ let backupTimer = null;
 export async function checkStorageSize() {
   try {
     const bytesUsed = await storage.getBytesInUse(null);
-    if (bytesUsed === 0) {
-      return; // getBytesInUse not supported
-    }
     const storageData = await storage.getLocal(['sizeWarningActive', 'lastSizeWarningAt']);
     const wasActive = storageData.sizeWarningActive || false;
+
+    // If API is unsupported (returns 0), clear any existing warning and skip check
+    if (bytesUsed === 0) {
+      if (wasActive) {
+        await storage.setLocal({ sizeWarningActive: false });
+      }
+      return;
+    }
+
     const lastWarningAt = storageData.lastSizeWarningAt;
     const now = Date.now();
 

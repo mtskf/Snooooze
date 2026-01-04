@@ -15,9 +15,13 @@ export default function GlobalShortcutSettings({ extensionShortcut }) {
     if (isFirefox) {
       // Firefox uses about:addons for extension management
       // But shortcuts are in the extension's own settings, so we show a message
-      tabs.create({ url: "about:addons" });
+      tabs.create({ url: "about:addons" }).catch((error) => {
+        console.error('Failed to open addons page:', error);
+      });
     } else {
-      tabs.create({ url: "chrome://extensions/shortcuts" });
+      tabs.create({ url: "chrome://extensions/shortcuts" }).catch((error) => {
+        console.error('Failed to open shortcuts page:', error);
+      });
     }
   };
 

@@ -120,7 +120,9 @@ export function useKeyboardNavigation({
         snoozedItemsShortcut &&
         key === snoozedItemsShortcut.toUpperCase()
       ) {
-        runtime.openOptionsPage();
+        runtime.openOptionsPage().catch((error) => {
+          console.error('Failed to open options page:', error);
+        });
         return;
       }
 
@@ -128,6 +130,8 @@ export function useKeyboardNavigation({
       if (settingsShortcut && e.key.toUpperCase() === settingsShortcut.toUpperCase()) {
         tabs.create({
           url: runtime.getURL("options/index.html#settings"),
+        }).catch((error) => {
+          console.error('Failed to open settings:', error);
         });
         return;
       }

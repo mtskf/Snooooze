@@ -315,7 +315,9 @@ export default function Popup() {
               variant="ghost"
               size="icon"
               className="text-muted-foreground h-8 w-8"
-              onClick={() => runtime.openOptionsPage()}
+              onClick={() => runtime.openOptionsPage().catch((error) => {
+                console.error('Failed to open options page:', error);
+              })}
             >
               <Inbox className="h-4 w-4" />
             </Button>
@@ -326,6 +328,8 @@ export default function Popup() {
               onClick={() =>
                 tabs.create({
                   url: runtime.getURL("options/index.html#settings"),
+                }).catch((error) => {
+                  console.error('Failed to open settings:', error);
                 })
               }
             >
