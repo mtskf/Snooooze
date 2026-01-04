@@ -196,6 +196,12 @@
  */
 
 /**
+ * Error response returned when message handling fails
+ * @typedef {Object} ErrorResponse
+ * @property {string} error - Error message describing what went wrong
+ */
+
+/**
  * Union type for all message responses
- * @typedef {GetSnoozedTabsResponse | Settings | SuccessResponse} MessageResponse
+ * @typedef {GetSnoozedTabsResponse | Settings | SuccessResponse | ErrorResponse} MessageResponse
  */
