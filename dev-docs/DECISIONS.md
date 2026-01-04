@@ -167,3 +167,18 @@ Documents significant architectural decisions made during development.
     - **Stable Identity**: Each snoozed item has a permanent unique ID.
     - **Safe Restore**: We don't rely on browser internal IDs.
     - **Idempotency**: Operations like "Remove Item" are safe and exact, even if the user has multiple tabs with the same URL.
+
+## ADR-028: Centralized Chrome API Wrapper
+- **Context**: Direct `chrome.*` API calls were scattered across 7+ files with inconsistent error handling, mixing callback and Promise patterns, and lacking a centralized abstraction for testing and Firefox compatibility.
+- **Decision**: Implement `src/utils/ChromeApi.js` as a unified wrapper for all Chrome Extension APIs:
+    - **Wrapped APIs**: storage (local/session), tabs, windows, notifications, alarms, runtime, commands
+    - **Promise-based**: Convert all callback-based APIs (commands.getAll, runtime.openOptionsPage) to Promises for async/await support
+    - **Error Handling**: Consistent try-catch patterns with descriptive error messages
+    - **Firefox Compatibility**: Graceful fallbacks for unsupported APIs (session storage, getBytesInUse)
+    - **Event Listeners Excluded**: Keep direct calls for chrome.runtime.onInstalled, chrome.alarms.onAlarm, etc., as they're one-time registrations
+- **Consequences**:
+    - **Consistency**: All Chrome API interactions go through a single abstraction layer
+    - **Testability**: Centralized mocking point for all Chrome API interactions in tests
+    - **Error Handling**: Uniform error handling and logging across the codebase
+    - **Maintainability**: Easier to add retry logic, rate limiting, or API pattern updates in one place
+    - **Code Quality**: Reduced code duplication and improved readability with consistent async/await patterns

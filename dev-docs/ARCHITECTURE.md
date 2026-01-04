@@ -16,6 +16,7 @@ Snooooze/
 │   │   └── Options.jsx      # Snoozed list, settings management
 │   ├── components/ui/       # shadcn/ui components
 │   ├── utils/               # Shared utilities
+│   │   ├── ChromeApi.js     # Unified Chrome Extension API wrapper
 │   │   ├── timeUtils.js     # Time calculations
 │   │   ├── StorageService.js# Import/export helpers
 │   │   ├── validation.js    # Storage data validation
@@ -30,6 +31,13 @@ Snooooze/
 ```
 
 ## Core Components
+
+### Chrome API Wrapper (`ChromeApi.js`)
+- **Unified Abstraction**: Centralized wrapper for all Chrome Extension APIs (storage, tabs, windows, notifications, alarms, runtime, commands)
+- **Promise-based**: Converts callback-based APIs to Promises for async/await support
+- **Error Handling**: Consistent try-catch patterns with descriptive error messages
+- **Firefox Compatibility**: Graceful fallbacks for unsupported APIs (session storage, getBytesInUse)
+- **Testability**: Single mocking point for all Chrome API interactions in tests
 
 ### Service Worker (`serviceWorker.js` + `snoozeLogic.js`)
 - **Alarm System**: `popCheck` runs every minute (or on startup) to restore overdue tabs
