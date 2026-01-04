@@ -234,7 +234,8 @@ export async function getValidatedSnoozedTabs() {
     if (!validation.valid) {
         console.warn('V2 validation errors during read, sanitizing and persisting:', validation.errors);
         const sanitized = sanitizeSnoozedTabsV2(v2Data);
-        await saveStorageV2(sanitized);
+        // Add version field after sanitization (force v2, override any existing version)
+        await saveStorageV2({ ...sanitized, version: 2 });
         return adapterV1(sanitized);
     }
 
@@ -284,7 +285,8 @@ export async function recoverFromBackup() {
 
     if (bestCandidate && maxItems > 0) {
         console.warn('No fully valid backup found. Recovered best available sanitized backup.');
-        await chrome.storage.local.set({ snoooze_v2: bestCandidate });
+        // Add version field after sanitization (force v2, override any existing version)
+        await chrome.storage.local.set({ snoooze_v2: { ...bestCandidate, version: 2 } });
         return { data: adapterV1(bestCandidate), recovered: true, tabCount: maxItems, sanitized: true };
     }
 
