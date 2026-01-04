@@ -57,6 +57,7 @@ import AppearanceSettings from "./AppearanceSettings";
 import { Kbd } from "@/components/ui/kbd";
 import { StorageService } from "@/utils/StorageService";
 import { sendMessage, MESSAGE_ACTIONS } from "@/messages";
+import { storage, commands } from "@/utils/ChromeApi";
 
 export default function Options() {
   const [snoozedTabs, setSnoozedTabs] = useState({});
@@ -97,8 +98,8 @@ export default function Options() {
     loadInitialData();
     fetchSnoozedTabs();
 
-    chrome.commands.getAll((commands) => {
-      const actionCommand = commands.find((c) => c.name === "_execute_action");
+    commands.getAll().then((cmds) => {
+      const actionCommand = cmds.find((c) => c.name === "_execute_action");
       if (actionCommand) {
         setExtensionShortcut(actionCommand.shortcut);
       }
@@ -120,7 +121,7 @@ export default function Options() {
     chrome.storage.onChanged.addListener(listener);
 
     // Load size warning state
-    chrome.storage.local.get(["sizeWarningActive"], (res) => {
+    storage.getLocal(["sizeWarningActive"]).then((res) => {
       setSizeWarningActive(res.sizeWarningActive || false);
     });
 
