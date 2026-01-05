@@ -34,10 +34,11 @@
 
 /**
  * Filters V2 data by search query (title or URL)
+ * Supports multiple keywords (space/comma separated) with AND condition.
  * Maintains items/schedule consistency.
  *
  * @param {StorageV2} v2Data - V2 snoozed tabs data
- * @param {string} query - Search query (case-insensitive)
+ * @param {string} query - Search query (case-insensitive, space/comma separated for AND)
  * @returns {StorageV2} Filtered V2 data
  */
 export function filterByQuery(v2Data, query) {
@@ -45,14 +46,26 @@ export function filterByQuery(v2Data, query) {
     return v2Data;
   }
 
-  const lowerQuery = query.toLowerCase();
+  // Split by whitespace or comma, filter empty keywords
+  const keywords = query
+    .toLowerCase()
+    .split(/[\s,]+/)
+    .filter((k) => k.trim() !== "");
+
+  if (keywords.length === 0) {
+    return v2Data;
+  }
+
   const filteredItems = {};
 
-  // Filter items by title or URL
+  // Filter items by title or URL (AND condition: all keywords must match)
   for (const [id, item] of Object.entries(v2Data.items || {})) {
-    const titleMatch = item.title?.toLowerCase().includes(lowerQuery);
-    const urlMatch = item.url?.toLowerCase().includes(lowerQuery);
-    if (titleMatch || urlMatch) {
+    const title = (item.title || "").toLowerCase();
+    const url = (item.url || "").toLowerCase();
+
+    // All keywords must match in either title or URL
+    const allMatch = keywords.every((k) => title.includes(k) || url.includes(k));
+    if (allMatch) {
       filteredItems[id] = item;
     }
   }

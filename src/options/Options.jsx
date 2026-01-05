@@ -228,8 +228,12 @@ export default function Options() {
 
       // Overwrite with imported data (no merge)
       await sendMessage(MESSAGE_ACTIONS.SET_SNOOZED_TABS, { data: importedData });
-      const tabCount = selectTabCount(importedData);
-      alert(`Imported ${tabCount} tabs successfully!`);
+
+      // Calculate tab count based on data version
+      const importedTabCount = importedData.version === 2
+        ? selectTabCount(importedData)
+        : importedData.tabCount || 0;
+      alert(`Imported ${importedTabCount} tabs successfully!`);
     } catch (error) {
       console.error(error);
       alert(

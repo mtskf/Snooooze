@@ -133,6 +133,85 @@ describe("selectors", () => {
 
       expect(result).toEqual({ version: 2, items: {}, schedule: {} });
     });
+
+    it("filters with AND condition for space-separated keywords", () => {
+      const item1 = createItem("tab-1", MOCK_TIME + 1000, {
+        title: "GitHub Issue Tracker",
+        url: "https://github.com/issues",
+      });
+      const item2 = createItem("tab-2", MOCK_TIME + 2000, {
+        title: "GitHub Docs",
+        url: "https://docs.github.com",
+      });
+      const item3 = createItem("tab-3", MOCK_TIME + 3000, {
+        title: "React Docs",
+        url: "https://reactjs.org",
+      });
+      const v2Data = createV2Data(
+        { "tab-1": item1, "tab-2": item2, "tab-3": item3 },
+        {
+          [MOCK_TIME + 1000]: ["tab-1"],
+          [MOCK_TIME + 2000]: ["tab-2"],
+          [MOCK_TIME + 3000]: ["tab-3"],
+        }
+      );
+
+      // "github issue" should match only tab-1 (both keywords must match)
+      const result = filterByQuery(v2Data, "github issue");
+
+      expect(Object.keys(result.items)).toEqual(["tab-1"]);
+    });
+
+    it("filters with AND condition for comma-separated keywords", () => {
+      const item1 = createItem("tab-1", MOCK_TIME + 1000, {
+        title: "GitHub Issue Tracker",
+      });
+      const item2 = createItem("tab-2", MOCK_TIME + 2000, {
+        title: "GitHub Docs",
+      });
+      const v2Data = createV2Data(
+        { "tab-1": item1, "tab-2": item2 },
+        {
+          [MOCK_TIME + 1000]: ["tab-1"],
+          [MOCK_TIME + 2000]: ["tab-2"],
+        }
+      );
+
+      // "github,issue" should match only tab-1
+      const result = filterByQuery(v2Data, "github,issue");
+
+      expect(Object.keys(result.items)).toEqual(["tab-1"]);
+    });
+
+    it("returns no results if any keyword does not match", () => {
+      const item1 = createItem("tab-1", MOCK_TIME + 1000, {
+        title: "GitHub Docs",
+      });
+      const v2Data = createV2Data(
+        { "tab-1": item1 },
+        { [MOCK_TIME + 1000]: ["tab-1"] }
+      );
+
+      // "github nomatch" should return empty (nomatch doesn't exist)
+      const result = filterByQuery(v2Data, "github nomatch");
+
+      expect(Object.keys(result.items)).toEqual([]);
+    });
+
+    it("handles whitespace-only query segments", () => {
+      const item1 = createItem("tab-1", MOCK_TIME + 1000, {
+        title: "Test Tab",
+      });
+      const v2Data = createV2Data(
+        { "tab-1": item1 },
+        { [MOCK_TIME + 1000]: ["tab-1"] }
+      );
+
+      // "  test  " should filter empty segments and match "test"
+      const result = filterByQuery(v2Data, "  test  ");
+
+      expect(Object.keys(result.items)).toEqual(["tab-1"]);
+    });
   });
 
   describe("selectSnoozedItemsByDay", () => {
