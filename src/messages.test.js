@@ -11,7 +11,6 @@ import {
 describe('messages', () => {
   describe('MESSAGE_ACTIONS', () => {
     it('defines all expected action constants', () => {
-      expect(MESSAGE_ACTIONS).toHaveProperty('GET_SNOOZED_TABS');
       expect(MESSAGE_ACTIONS).toHaveProperty('GET_SNOOZED_TABS_V2');
       expect(MESSAGE_ACTIONS).toHaveProperty('SET_SNOOZED_TABS');
       expect(MESSAGE_ACTIONS).toHaveProperty('GET_SETTINGS');
@@ -26,20 +25,12 @@ describe('messages', () => {
     });
 
     it('uses correct action string values', () => {
-      expect(MESSAGE_ACTIONS.GET_SNOOZED_TABS).toBe('getSnoozedTabs');
       expect(MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2).toBe('getSnoozedTabsV2');
       expect(MESSAGE_ACTIONS.SNOOZE).toBe('snooze');
     });
   });
 
   describe('validateMessageRequest', () => {
-    it('validates valid getSnoozedTabs request', () => {
-      const request = { action: MESSAGE_ACTIONS.GET_SNOOZED_TABS };
-      const result = validateMessageRequest(request);
-      expect(result.valid).toBe(true);
-      expect(result.errors).toEqual([]);
-    });
-
     it('validates valid getSnoozedTabsV2 request', () => {
       const request = { action: MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2 };
       const result = validateMessageRequest(request);
@@ -118,8 +109,8 @@ describe('messages', () => {
 
   describe('createMessage', () => {
     it('creates valid message for simple action', () => {
-      const message = createMessage(MESSAGE_ACTIONS.GET_SNOOZED_TABS);
-      expect(message).toEqual({ action: MESSAGE_ACTIONS.GET_SNOOZED_TABS });
+      const message = createMessage(MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2);
+      expect(message).toEqual({ action: MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2 });
     });
 
     it('creates valid message with payload', () => {
@@ -146,18 +137,6 @@ describe('messages', () => {
         expect(MESSAGE_HANDLERS).toHaveProperty(action);
         expect(typeof MESSAGE_HANDLERS[action]).toBe('function');
       });
-    });
-
-    it('getSnoozedTabs handler calls getValidatedSnoozedTabs', async () => {
-      const mockService = {
-        getValidatedSnoozedTabs: vi.fn().mockResolvedValue({ tabCount: 5 }),
-      };
-
-      const request = { action: MESSAGE_ACTIONS.GET_SNOOZED_TABS };
-      const result = await MESSAGE_HANDLERS[MESSAGE_ACTIONS.GET_SNOOZED_TABS](request, mockService);
-
-      expect(mockService.getValidatedSnoozedTabs).toHaveBeenCalled();
-      expect(result).toEqual({ tabCount: 5 });
     });
 
     it('getSnoozedTabsV2 handler calls getSnoozedTabsV2', async () => {
@@ -237,15 +216,20 @@ describe('messages', () => {
 
   describe('dispatchMessage', () => {
     it('dispatches message to correct handler', async () => {
+      const mockV2Data = {
+        version: 2,
+        items: { 'tab-1': { url: 'https://example.com' } },
+        schedule: { '1234567890': ['tab-1'] },
+      };
       const mockService = {
-        getValidatedSnoozedTabs: vi.fn().mockResolvedValue({ tabCount: 3 }),
+        getSnoozedTabsV2: vi.fn().mockResolvedValue(mockV2Data),
       };
 
-      const request = { action: MESSAGE_ACTIONS.GET_SNOOZED_TABS };
+      const request = { action: MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2 };
       const result = await dispatchMessage(request, mockService);
 
-      expect(result).toEqual({ tabCount: 3 });
-      expect(mockService.getValidatedSnoozedTabs).toHaveBeenCalled();
+      expect(result).toEqual(mockV2Data);
+      expect(mockService.getSnoozedTabsV2).toHaveBeenCalled();
     });
 
     it('dispatches setSettings to the handler with payload', async () => {
@@ -284,15 +268,15 @@ describe('messages', () => {
 
     it('throws error for missing handler', async () => {
       // Temporarily remove a handler
-      const originalHandler = MESSAGE_HANDLERS[MESSAGE_ACTIONS.GET_SNOOZED_TABS];
-      delete MESSAGE_HANDLERS[MESSAGE_ACTIONS.GET_SNOOZED_TABS];
+      const originalHandler = MESSAGE_HANDLERS[MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2];
+      delete MESSAGE_HANDLERS[MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2];
 
       await expect(
-        dispatchMessage({ action: MESSAGE_ACTIONS.GET_SNOOZED_TABS }, {})
+        dispatchMessage({ action: MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2 }, {})
       ).rejects.toThrow('No handler registered');
 
       // Restore handler
-      MESSAGE_HANDLERS[MESSAGE_ACTIONS.GET_SNOOZED_TABS] = originalHandler;
+      MESSAGE_HANDLERS[MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2] = originalHandler;
     });
   });
 
@@ -308,15 +292,15 @@ describe('messages', () => {
     });
 
     it('sends message and resolves with response', async () => {
-      const mockResponse = { tabCount: 5 };
+      const mockResponse = { version: 2, items: {}, schedule: {} };
       chrome.runtime.sendMessage.mockImplementation((msg, callback) => {
         callback(mockResponse);
       });
 
-      const result = await sendMessage(MESSAGE_ACTIONS.GET_SNOOZED_TABS);
+      const result = await sendMessage(MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2);
 
       expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        { action: MESSAGE_ACTIONS.GET_SNOOZED_TABS },
+        { action: MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2 },
         expect.any(Function)
       );
       expect(result).toEqual(mockResponse);
@@ -329,7 +313,7 @@ describe('messages', () => {
       });
 
       await expect(
-        sendMessage(MESSAGE_ACTIONS.GET_SNOOZED_TABS)
+        sendMessage(MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2)
       ).rejects.toThrow('Connection error');
 
       chrome.runtime.lastError = null;
@@ -341,7 +325,7 @@ describe('messages', () => {
       });
 
       await expect(
-        sendMessage(MESSAGE_ACTIONS.GET_SNOOZED_TABS)
+        sendMessage(MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2)
       ).rejects.toThrow('Unknown action');
     });
 
