@@ -17,11 +17,20 @@
   3. `Options.jsx`のImport/ExportロジックをV2対応後にバックグラウンドへ移動。
   4. V1アダプタ/バリデーション（`validateSnoozedTabs`/`sanitizeSnoozedTabs`）/StorageService(V1)の撤去。
 
+- [ ] 🔧 [L] **TypeScriptへの移行** (プロジェクトルール準拠)。
+  - 現状はJS + JSDocだが、`GEMINI.md`のルールに従いTS化を進める。ビルド設定(Vite)と依存関係の更新が必要。
+
 ---
 
 ### 💡 Low
 
+- [ ] 🔧 [M] `SnoozedList.jsx` の表示ロジック（グルーピング）をフック/ユーティリティに分離し、ユニットテストを強化する。
+   - 現在UI内にインライン記述されている複雑な日付/ウィンドウグループ化ロジックをテスト可能な形にする。
+
+- [ ] 🔧 [S] `Popup.jsx` と `timeUtils.js` で重複する「早朝/週末/終了時間判定」ロジックを共通化する。
+
 - [ ] 🔧 [M] ストレージ取得の一本化（`getStorageV2` / `ensureValidStorage` / `getValidatedSnoozedTabs` を統合）。
+
 
 - [ ] 🔧 [S] メッセージ送信の一本化（`messages.js`に統一し、`ChromeApi`側の`sendMessage`を削除）。
 
