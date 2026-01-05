@@ -552,6 +552,14 @@ async function restoreTabs(tabsToRestore) {
         }
         // Validate all tabs were created
         if (!win || !win.tabs || win.tabs.length !== urls.length) {
+          // Cleanup partial window before retrying
+          if (win && win.id) {
+            try {
+              await windows.remove(win.id);
+            } catch (e) {
+              // Ignore cleanup errors
+            }
+          }
           throw new Error(`Partial restore: expected ${urls.length} tabs, got ${win?.tabs?.length || 0}`);
         }
         return win;

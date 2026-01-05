@@ -42,6 +42,7 @@ const chromeMock = {
   windows: {
     create: vi.fn(),
     getLastFocused: vi.fn(),
+    remove: vi.fn(),
   },
   notifications: {
       create: vi.fn()
@@ -635,6 +636,32 @@ describe('snoozeLogic.js (V2)', () => {
 
             await runPopCheckWithTimers(RETRY_DELAY_MS * 2);
 
+            expect(chromeMock.windows.create).toHaveBeenCalledTimes(2);
+        });
+
+        test('should cleanup partial window before retry on validation failure', async () => {
+            const popTime = MOCK_TIME - 1000;
+            const groupId = 'cleanup-group';
+            const items = {
+                'g1': createItem('g1', popTime, { groupId, index: 0 }),
+                'g2': createItem('g2', popTime, { groupId, index: 1 })
+            };
+
+            chromeMock.storage.local.get.mockResolvedValue(createV2Data(
+                items,
+                { [popTime]: ['g1', 'g2'] }
+            ));
+
+            // First attempt: partial restore (1 tab instead of 2)
+            // Second attempt: success
+            chromeMock.windows.create
+                .mockResolvedValueOnce({ id: 200, tabs: [{ id: 1 }] }) // Partial - only 1 tab
+                .mockResolvedValueOnce({ id: 201, tabs: [{ id: 2 }, { id: 3 }] }); // Success - 2 tabs
+
+            await runPopCheckWithTimers(RETRY_DELAY_MS * 2);
+
+            // Should have closed the partial window before retrying
+            expect(chromeMock.windows.remove).toHaveBeenCalledWith(200);
             expect(chromeMock.windows.create).toHaveBeenCalledTimes(2);
         });
     });
