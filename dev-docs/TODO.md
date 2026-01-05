@@ -11,12 +11,6 @@
 
 ### ⚠️ Medium
 
-- [ ] 🔧 [L] **V2一本化の完了**（親タスク - 順序依存あり）
-  1. `StorageService`のV2対応 - 現在V1フォーマットのみ対応。
-  2. UIはV2直表示へ移行（selector層を作り、V1アダプタは import/export のみに限定）。
-  3. `Options.jsx`のImport/ExportロジックをV2対応後にバックグラウンドへ移動。
-  4. V1アダプタ/バリデーション（`validateSnoozedTabs`/`sanitizeSnoozedTabs`）/StorageService(V1)の撤去。
-
 - [ ] 🔧 [L] **TypeScriptへの移行** (プロジェクトルール準拠)。
   - 現状はJS + JSDocだが、`GEMINI.md`のルールに従いTS化を進める。ビルド設定(Vite)と依存関係の更新が必要。
 
@@ -85,6 +79,12 @@
 ---
 
 ### ✅ Done
+
+- [x] 🔧 [L] **V2一本化の完了** (PR #100, #101, #102)
+  1. StorageService V2対応 + Selector層追加
+  2. UI V2直表示へ移行
+  3. Import/Exportロジックをバックグラウンドへ移動
+  4. V1アダプタ/バリデーション/レガシーコード撤去 (~430行削除)
 
 - [x] 🐛 `snoozeLogic.js`のタブ復元失敗時のロジック改善
   1. `restoreTabs`内でリトライを行う（200ms間隔で最大3回）。
