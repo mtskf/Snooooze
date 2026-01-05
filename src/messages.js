@@ -22,7 +22,6 @@
  * Centralized source of truth for all message action types
  */
 export const MESSAGE_ACTIONS = {
-  GET_SNOOZED_TABS: 'getSnoozedTabs',
   GET_SNOOZED_TABS_V2: 'getSnoozedTabsV2',
   SET_SNOOZED_TABS: 'setSnoozedTabs',
   GET_SETTINGS: 'getSettings',
@@ -105,7 +104,6 @@ export function validateMessageRequest(request) {
       break;
 
     // These actions require no additional properties
-    case MESSAGE_ACTIONS.GET_SNOOZED_TABS:
     case MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2:
     case MESSAGE_ACTIONS.GET_SETTINGS:
     case MESSAGE_ACTIONS.CLEAR_ALL_SNOOZED_TABS:
@@ -144,10 +142,6 @@ export function createMessage(action, payload = {}) {
  * - returns: MessageResponse
  */
 export const MESSAGE_HANDLERS = {
-  [MESSAGE_ACTIONS.GET_SNOOZED_TABS]: async (request, { getValidatedSnoozedTabs }) => {
-    return await getValidatedSnoozedTabs();
-  },
-
   [MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2]: async (request, { getSnoozedTabsV2 }) => {
     return await getSnoozedTabsV2();
   },

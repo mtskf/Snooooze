@@ -10,12 +10,10 @@ import {
   removeSnoozedTabWrapper,
   removeWindowGroup,
   restoreWindowGroup,
-  getSnoozedTabs,
   getSnoozedTabsV2,
   setSnoozedTabs,
   getSettings,
   setSettings,
-  getValidatedSnoozedTabs,
   importTabs,
   getExportData,
 } from "./snoozeLogic";
@@ -57,7 +55,6 @@ async function handleMessage(request, sendResponse) {
   try {
     // Create services object with all dependencies needed by message handlers
     const services = {
-      getValidatedSnoozedTabs,
       getSnoozedTabsV2,
       setSnoozedTabs,
       getSettings,

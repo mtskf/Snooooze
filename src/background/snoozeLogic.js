@@ -110,39 +110,6 @@ async function saveStorageV2(v2Data) {
     scheduleBackupRotation(v2Data);
 }
 
-// --- Adapters (Public API for UI/Legacy) ---
-
-/**
- * Adapts V2 structure to V1 format (Read Adapter)
- * @param {StorageV2} v2Data - V2 storage data
- * @returns {Object} V1 legacy format { tabCount: number, [timestamp]: SnoozedItemV2[] }
- */
-function adapterV1(v2Data) {
-    if (!v2Data || !v2Data.items || !v2Data.schedule) return { tabCount: 0 };
-
-    const legacy = { tabCount: 0 };
-
-    for (const time in v2Data.schedule) {
-        const ids = v2Data.schedule[time];
-        // Map IDs to Items, verify existence
-        const tabs = ids.map(id => v2Data.items[id]).filter(Boolean);
-        if (tabs.length > 0) {
-            legacy[time] = tabs;
-            legacy.tabCount += tabs.length;
-        }
-    }
-    return legacy;
-}
-
-/**
- * Gets all snoozed tabs in V1 legacy format (for backwards compatibility)
- * @returns {Promise<Object>} V1 legacy format { tabCount: number, [timestamp]: SnoozedItemV2[] }
- */
-export async function getSnoozedTabs() {
-  const v2Data = await getStorageV2();
-  return adapterV1(v2Data);
-}
-
 /**
  * Write Adapter (V1 -> V2)
  * Used if legacy code calls setSnoozedTabs. Converts structure and saves V2.
@@ -229,25 +196,6 @@ async function rotateBackups(data) {
     // Backup failed, but don't crash the extension
     console.warn('Backup rotation failed:', e);
   }
-}
-
-/**
- * Gets validated snoozed tabs, sanitizing if validation fails
- * @returns {Promise<Object>} V1 legacy format { tabCount: number, [timestamp]: SnoozedItemV2[] }
- */
-export async function getValidatedSnoozedTabs() {
-    const v2Data = await getStorageV2();
-    const validation = validateSnoozedTabsV2(v2Data);
-
-    if (!validation.valid) {
-        console.warn('V2 validation errors during read, sanitizing and persisting:', validation.errors);
-        const sanitized = sanitizeSnoozedTabsV2(v2Data);
-        // Add version field after sanitization (force v2, override any existing version)
-        await saveStorageV2({ ...sanitized, version: 2 });
-        return adapterV1(sanitized);
-    }
-
-    return adapterV1(v2Data);
 }
 
 /**
@@ -377,7 +325,7 @@ export async function importTabs(rawData) {
 
 /**
  * Recovers snoozed tabs from backup storage
- * @returns {Promise<RecoveryResult>} Recovery result with data, success status, and tab count
+ * @returns {Promise<{recovered: boolean, tabCount: number, sanitized?: boolean}>} Recovery result
  */
 export async function recoverFromBackup() {
     // V2 Recovery logic: Try to find fully valid backup first, then fall back to sanitized
@@ -393,7 +341,7 @@ export async function recoverFromBackup() {
             const validation = validateSnoozedTabsV2(backupData);
             if (validation.valid) {
                 await storage.setLocal({ snoooze_v2: backupData });
-                return { data: adapterV1(backupData), recovered: true, tabCount: Object.keys(backupData.items).length };
+                return { recovered: true, tabCount: Object.keys(backupData.items).length };
             }
         }
     }
@@ -420,13 +368,13 @@ export async function recoverFromBackup() {
         console.warn('No fully valid backup found. Recovered best available sanitized backup.');
         // Add version field after sanitization (force v2, override any existing version)
         await storage.setLocal({ snoooze_v2: { ...bestCandidate, version: 2 } });
-        return { data: adapterV1(bestCandidate), recovered: true, tabCount: maxItems, sanitized: true };
+        return { recovered: true, tabCount: maxItems, sanitized: true };
     }
 
     // Reset
     const empty = { items: {}, schedule: {} };
     await storage.setLocal({ snoooze_v2: empty });
-    return { data: { tabCount: 0 }, recovered: false, tabCount: 0 };
+    return { recovered: false, tabCount: 0 };
 }
 
 // Migration logic moved to schemaVersioning.js for centralized version management

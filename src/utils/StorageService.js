@@ -48,18 +48,4 @@ export const StorageService = {
       reader.readAsText(file);
     });
   },
-
-  // Legacy aliases for backward compatibility during transition
-  exportTabs: (data) => {
-    // Check for valid V2 data with items (for Phase 1 compatibility)
-    if (!data || !data.items || Object.keys(data.items).length === 0) {
-      throw new Error("No tabs to export.");
-    }
-    StorageService.downloadAsJson(data);
-  },
-
-  parseImportFile: (file) => {
-    // Just parse the file, no validation (validation moved to background)
-    return StorageService.readJsonFile(file);
-  },
 };

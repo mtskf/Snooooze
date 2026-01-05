@@ -1,7 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   checkStorageSize,
-  getSnoozedTabs,
   getSnoozedTabsV2,
   setSnoozedTabs,
   initStorage,
@@ -10,7 +9,6 @@ import {
   removeSnoozedTabWrapper,
   removeWindowGroup,
   getSettings,
-  getValidatedSnoozedTabs,
   importTabs,
   getExportData,
 } from './snoozeLogic';
@@ -299,7 +297,7 @@ describe('snoozeLogic.js (V2)', () => {
         });
     });
 
-    describe('getValidatedSnoozedTabs', () => {
+    describe('getSnoozedTabsV2 validation', () => {
         test('sanitizes invalid schedule references and persists', async () => {
             const popTime = MOCK_TIME - 1000;
             const id = 'tab-1';
@@ -312,7 +310,7 @@ describe('snoozeLogic.js (V2)', () => {
             };
             chromeMock.storage.local.get.mockResolvedValue(invalidV2);
 
-            const result = await getValidatedSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
             expect(chromeMock.storage.local.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -322,8 +320,8 @@ describe('snoozeLogic.js (V2)', () => {
                     })
                 })
             );
-            expect(result.tabCount).toBe(1);
-            expect(result[popTime]).toHaveLength(1);
+            expect(result.items[id]).toBeDefined();
+            expect(result.schedule[popTime]).toEqual([id]);
         });
 
         test('should add version field when sanitizing invalid data', async () => {
@@ -341,7 +339,7 @@ describe('snoozeLogic.js (V2)', () => {
 
             chromeMock.storage.local.get.mockResolvedValue(corruptedData);
 
-            await getValidatedSnoozedTabs();
+            await getSnoozedTabsV2();
 
             // Check that set was called with version: 2
             expect(chromeMock.storage.local.set).toHaveBeenCalledWith({
@@ -355,17 +353,17 @@ describe('snoozeLogic.js (V2)', () => {
     });
 
     describe('getStorageV2 defensive handling', () => {
-        test('getSnoozedTabs handles missing items property', async () => {
+        test('getSnoozedTabsV2 handles missing items property', async () => {
             chromeMock.storage.local.get.mockResolvedValue({
                 snoooze_v2: { schedule: { '123456': ['id-1'] } }
             });
 
-            const result = await getSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
-            expect(result).toEqual({ tabCount: 0 });
+            expect(result).toEqual({ version: 2, items: {}, schedule: {} });
         });
 
-        test('getSnoozedTabs handles missing schedule property', async () => {
+        test('getSnoozedTabsV2 handles missing schedule property', async () => {
             const popTime = MOCK_TIME + 1000;
             const id = 'tab-1';
             const item = createItem(id, popTime);
@@ -373,32 +371,33 @@ describe('snoozeLogic.js (V2)', () => {
                 snoooze_v2: { items: { [id]: item } }
             });
 
-            const result = await getSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
-            expect(result).toEqual({ tabCount: 0 });
+            // Items are preserved, only schedule is empty
+            expect(result).toEqual({ version: 2, items: { [id]: item }, schedule: {} });
         });
 
-        test('getSnoozedTabs handles both items and schedule missing', async () => {
+        test('getSnoozedTabsV2 handles both items and schedule missing', async () => {
             chromeMock.storage.local.get.mockResolvedValue({
                 snoooze_v2: {}
             });
 
-            const result = await getSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
-            expect(result).toEqual({ tabCount: 0 });
+            expect(result).toEqual({ version: 2, items: {}, schedule: {} });
         });
 
-        test('getSnoozedTabs handles null items', async () => {
+        test('getSnoozedTabsV2 handles null items', async () => {
             chromeMock.storage.local.get.mockResolvedValue({
                 snoooze_v2: { items: null, schedule: {} }
             });
 
-            const result = await getSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
-            expect(result).toEqual({ tabCount: 0 });
+            expect(result).toEqual({ version: 2, items: {}, schedule: {} });
         });
 
-        test('getSnoozedTabs handles null schedule', async () => {
+        test('getSnoozedTabsV2 handles null schedule', async () => {
             const popTime = MOCK_TIME + 1000;
             const id = 'tab-1';
             const item = createItem(id, popTime);
@@ -406,9 +405,10 @@ describe('snoozeLogic.js (V2)', () => {
                 snoooze_v2: { items: { [id]: item }, schedule: null }
             });
 
-            const result = await getSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
-            expect(result).toEqual({ tabCount: 0 });
+            // Items are preserved, only schedule is empty
+            expect(result).toEqual({ version: 2, items: { [id]: item }, schedule: {} });
         });
 
         test('popCheck handles corrupted storage without crashing', async () => {
@@ -421,34 +421,34 @@ describe('snoozeLogic.js (V2)', () => {
             expect(result).toEqual({ count: 0 });
         });
 
-        test('getSnoozedTabs handles items as array (invalid)', async () => {
+        test('getSnoozedTabsV2 handles items as array (invalid)', async () => {
             chromeMock.storage.local.get.mockResolvedValue({
                 snoooze_v2: { items: ['invalid'], schedule: {} }
             });
 
-            const result = await getSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
-            expect(result).toEqual({ tabCount: 0 });
+            expect(result).toEqual({ version: 2, items: {}, schedule: {} });
         });
 
-        test('getSnoozedTabs handles schedule as array (invalid)', async () => {
+        test('getSnoozedTabsV2 handles schedule as array (invalid)', async () => {
             chromeMock.storage.local.get.mockResolvedValue({
                 snoooze_v2: { items: {}, schedule: ['invalid'] }
             });
 
-            const result = await getSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
-            expect(result).toEqual({ tabCount: 0 });
+            expect(result).toEqual({ version: 2, items: {}, schedule: {} });
         });
 
-        test('getSnoozedTabs handles snoooze_v2 as array (invalid)', async () => {
+        test('getSnoozedTabsV2 handles snoooze_v2 as array (invalid)', async () => {
             chromeMock.storage.local.get.mockResolvedValue({
                 snoooze_v2: ['invalid']
             });
 
-            const result = await getSnoozedTabs();
+            const result = await getSnoozedTabsV2();
 
-            expect(result).toEqual({ tabCount: 0 });
+            expect(result).toEqual({ version: 2, items: {}, schedule: {} });
         });
     });
 
