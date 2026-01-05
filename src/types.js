@@ -44,13 +44,11 @@
  * @typedef {Object} ValidationResult
  * @property {boolean} valid - Whether the data is valid
  * @property {string[]} errors - Array of error messages
- * @property {boolean} [repairable] - Whether errors can be auto-fixed (only in V1 validation)
  */
 
 /**
  * Storage recovery result from backup system
  * @typedef {Object} RecoveryResult
- * @property {Object} data - Recovered V1 legacy format snoozed tabs
  * @property {boolean} recovered - Whether recovery succeeded
  * @property {number} tabCount - Number of tabs recovered
  * @property {boolean} [sanitized] - Whether sanitized backup was used (if primary backup invalid)
@@ -113,23 +111,37 @@
 // ============================================================================
 
 /**
- * Request: Get all snoozed tabs (V1 legacy format)
- * @typedef {Object} GetSnoozedTabsRequest
- * @property {"getSnoozedTabs"} action
+ * Request: Get all snoozed tabs (V2 format)
+ * @typedef {Object} GetSnoozedTabsV2Request
+ * @property {"getSnoozedTabsV2"} action
  */
 
 /**
- * Response: Snoozed tabs in V1 legacy format
- * @typedef {Object} GetSnoozedTabsResponse
- * @property {number} tabCount - Total number of snoozed tabs
- * @property {Object.<string, SnoozedItemV2[]>} [key] - Timestamp keys mapping to tab arrays
- */
-
-/**
- * Request: Set snoozed tabs (import/merge)
+ * Request: Set snoozed tabs (overwrite with V2 data)
  * @typedef {Object} SetSnoozedTabsRequest
  * @property {"setSnoozedTabs"} action
- * @property {Object} data - V1 legacy format data or V2 data
+ * @property {StorageV2} data - V2 format data to save
+ */
+
+/**
+ * Request: Import tabs (V1/V2 format, merged with existing)
+ * @typedef {Object} ImportTabsRequest
+ * @property {"importTabs"} action
+ * @property {Object} data - V1 legacy format or V2 data (auto-detected and migrated)
+ */
+
+/**
+ * Response: Import result
+ * @typedef {Object} ImportTabsResponse
+ * @property {boolean} success - Whether import succeeded
+ * @property {number} [addedCount] - Number of tabs added
+ * @property {string} [error] - Error message if failed
+ */
+
+/**
+ * Request: Export tabs
+ * @typedef {Object} ExportTabsRequest
+ * @property {"exportTabs"} action
  */
 
 /**
@@ -183,10 +195,10 @@
 
 /**
  * Union type for all message requests
- * @typedef {GetSnoozedTabsRequest | SetSnoozedTabsRequest | GetSettingsRequest |
+ * @typedef {GetSnoozedTabsV2Request | SetSnoozedTabsRequest | GetSettingsRequest |
  *           SetSettingsRequest | SnoozeRequest | RemoveSnoozedTabRequest |
  *           RemoveWindowGroupRequest | RestoreWindowGroupRequest |
- *           ClearAllSnoozedTabsRequest} MessageRequest
+ *           ClearAllSnoozedTabsRequest | ImportTabsRequest | ExportTabsRequest} MessageRequest
  */
 
 /**
@@ -203,5 +215,5 @@
 
 /**
  * Union type for all message responses
- * @typedef {GetSnoozedTabsResponse | Settings | SuccessResponse | ErrorResponse} MessageResponse
+ * @typedef {StorageV2 | Settings | SuccessResponse | ErrorResponse | ImportTabsResponse} MessageResponse
  */
