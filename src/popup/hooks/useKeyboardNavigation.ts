@@ -1,12 +1,11 @@
 import { useEffect, useRef } from "react";
 import { runtime, tabs } from "@/utils/ChromeApi";
+import type { Scope } from "../components/ScopeSelector";
 
 interface SnoozeItem {
   id: string;
   shortcuts: string[];
 }
-
-type Scope = "selected" | "window";
 
 interface UseKeyboardNavigationProps {
   items: SnoozeItem[];
@@ -18,7 +17,7 @@ interface UseKeyboardNavigationProps {
   handleSnoozeWithScope: (id: string, scope: Scope) => void;
   handleOneMinuteSnooze: (scope: Scope) => void;
   setIsCalendarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setCalendarScope: React.Dispatch<React.SetStateAction<string>>;
+  setCalendarScope: React.Dispatch<React.SetStateAction<Scope>>;
   isCalendarOpen: boolean;
   pickDateShortcut: string | null;
   snoozedItemsShortcut: string | null;
