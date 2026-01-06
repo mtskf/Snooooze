@@ -3,19 +3,21 @@
  *
  * Centralizes all message action types, request/response validation,
  * and handler mappings for chrome.runtime messaging.
- *
- * @typedef {import('./types.js').MessageRequest} MessageRequest
- * @typedef {import('./types.js').MessageResponse} MessageResponse
- * @typedef {import('./types.js').GetSnoozedTabsRequest} GetSnoozedTabsRequest
- * @typedef {import('./types.js').SetSnoozedTabsRequest} SetSnoozedTabsRequest
- * @typedef {import('./types.js').GetSettingsRequest} GetSettingsRequest
- * @typedef {import('./types.js').SetSettingsRequest} SetSettingsRequest
- * @typedef {import('./types.js').SnoozeRequest} SnoozeRequest
- * @typedef {import('./types.js').RemoveSnoozedTabRequest} RemoveSnoozedTabRequest
- * @typedef {import('./types.js').RemoveWindowGroupRequest} RemoveWindowGroupRequest
- * @typedef {import('./types.js').RestoreWindowGroupRequest} RestoreWindowGroupRequest
- * @typedef {import('./types.js').ClearAllSnoozedTabsRequest} ClearAllSnoozedTabsRequest
  */
+
+import type {
+  StorageV2,
+  Settings,
+  SnoozedItemV2,
+  SuccessResponse,
+  ErrorResponse,
+  ImportTabsResponse,
+  MessageRequest,
+  MessageResponse,
+} from './types';
+
+// Re-export types for consumers
+export type { StorageV2, Settings, SnoozedItemV2 };
 
 /**
  * Message action constants
@@ -33,72 +35,79 @@ export const MESSAGE_ACTIONS = {
   RESTORE_WINDOW_GROUP: 'restoreWindowGroup',
   IMPORT_TABS: 'importTabs',
   EXPORT_TABS: 'exportTabs',
-};
+} as const;
+
+export type MessageAction = typeof MESSAGE_ACTIONS[keyof typeof MESSAGE_ACTIONS];
+
+interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+}
 
 /**
  * Validates a message request structure
- * @param {any} request - Request to validate
- * @returns {{ valid: boolean, errors: string[] }} Validation result
  */
-export function validateMessageRequest(request) {
-  const errors = [];
+export function validateMessageRequest(request: unknown): ValidationResult {
+  const errors: string[] = [];
 
   if (!request || typeof request !== 'object') {
     return { valid: false, errors: ['Request must be an object'] };
   }
 
-  if (!request.action || typeof request.action !== 'string') {
+  const req = request as Record<string, unknown>;
+
+  if (!req.action || typeof req.action !== 'string') {
     errors.push('Request must have an action property of type string');
   }
 
-  const validActions = Object.values(MESSAGE_ACTIONS);
-  if (request.action && !validActions.includes(request.action)) {
-    errors.push(`Unknown action: ${request.action}`);
+  const validActions = Object.values(MESSAGE_ACTIONS) as string[];
+  if (req.action && !validActions.includes(req.action as string)) {
+    errors.push(`Unknown action: ${req.action}`);
   }
 
   // Action-specific validation
-  switch (request.action) {
+  switch (req.action) {
     case MESSAGE_ACTIONS.SET_SNOOZED_TABS:
-      if (!request.data) {
+      if (!req.data) {
         errors.push('setSnoozedTabs requires data property');
       }
       break;
 
     case MESSAGE_ACTIONS.SET_SETTINGS:
-      if (!request.data || typeof request.data !== 'object') {
+      if (!req.data || typeof req.data !== 'object') {
         errors.push('setSettings requires data object');
       }
       break;
 
     case MESSAGE_ACTIONS.SNOOZE:
-      if (!request.tab) {
+      if (!req.tab) {
         errors.push('snooze requires tab property');
       }
-      if (typeof request.popTime !== 'number') {
+      if (typeof req.popTime !== 'number') {
         errors.push('snooze requires popTime (number)');
       }
       break;
 
     case MESSAGE_ACTIONS.REMOVE_SNOOZED_TAB:
-      if (!request.tab) {
+      if (!req.tab) {
         errors.push('removeSnoozedTab requires tab property');
       }
       break;
 
     case MESSAGE_ACTIONS.REMOVE_WINDOW_GROUP:
-      if (!request.groupId || typeof request.groupId !== 'string') {
+      if (!req.groupId || typeof req.groupId !== 'string') {
         errors.push('removeWindowGroup requires groupId (string)');
       }
       break;
 
     case MESSAGE_ACTIONS.RESTORE_WINDOW_GROUP:
-      if (!request.groupId || typeof request.groupId !== 'string') {
+      if (!req.groupId || typeof req.groupId !== 'string') {
         errors.push('restoreWindowGroup requires groupId (string)');
       }
       break;
 
     case MESSAGE_ACTIONS.IMPORT_TABS:
-      if (!request.data || typeof request.data !== 'object') {
+      if (!req.data || typeof req.data !== 'object') {
         errors.push('importTabs requires data object');
       }
       break;
@@ -116,12 +125,8 @@ export function validateMessageRequest(request) {
 
 /**
  * Creates a validated message request
- * @param {string} action - Action type from MESSAGE_ACTIONS
- * @param {Object} [payload] - Optional payload data
- * @returns {MessageRequest} Validated message request
- * @throws {Error} If validation fails
  */
-export function createMessage(action, payload = {}) {
+export function createMessage(action: MessageAction, payload: Record<string, unknown> = {}): MessageRequest {
   const request = { action, ...payload };
   const validation = validateMessageRequest(request);
 
@@ -129,79 +134,110 @@ export function createMessage(action, payload = {}) {
     throw new Error(`Invalid message: ${validation.errors.join(', ')}`);
   }
 
-  return request;
+  return request as MessageRequest;
 }
+
+// Tab input for snooze function - matches both chrome.tabs.Tab and SnoozedItemV2
+interface SnoozeTabInput {
+  url: string;
+  title?: string;
+  favIconUrl?: string;
+  favicon?: string | null;
+  index?: number;
+  id?: number | string;
+}
+
+/**
+ * Service dependencies for message handlers
+ */
+export interface MessageServices {
+  getSnoozedTabsV2: () => Promise<StorageV2>;
+  setSnoozedTabs: (data: unknown) => Promise<void>;
+  getSettings: () => Promise<Settings>;
+  setSettings: (data: Partial<Settings>) => Promise<void>;
+  snooze: (tab: SnoozeTabInput, popTime: number, groupId?: string | null) => Promise<void>;
+  removeSnoozedTabWrapper: (tab: SnoozedItemV2) => Promise<void>;
+  removeWindowGroup: (groupId: string) => Promise<void>;
+  restoreWindowGroup: (groupId: string) => Promise<void>;
+  importTabs: (data: unknown) => Promise<{ success: boolean; addedCount?: number; error?: string }>;
+  getExportData: () => Promise<StorageV2>;
+}
+
+type MessageHandler = (request: MessageRequest, services: MessageServices) => Promise<MessageResponse>;
 
 /**
  * Message handler registry
  * Maps action types to their handler functions
- *
- * Handler signature: async (request, services) => response
- * - request: The full message request object
- * - services: Injected services (snoozeLogic functions, etc.)
- * - returns: MessageResponse
  */
-export const MESSAGE_HANDLERS = {
-  [MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2]: async (request, { getSnoozedTabsV2 }) => {
+export const MESSAGE_HANDLERS: Record<MessageAction, MessageHandler> = {
+  [MESSAGE_ACTIONS.GET_SNOOZED_TABS_V2]: async (_request, { getSnoozedTabsV2 }) => {
     return await getSnoozedTabsV2();
   },
 
   [MESSAGE_ACTIONS.SET_SNOOZED_TABS]: async (request, { setSnoozedTabs }) => {
-    await setSnoozedTabs(request.data);
+    const req = request as unknown as { data: unknown };
+    await setSnoozedTabs(req.data);
     return { success: true };
   },
 
-  [MESSAGE_ACTIONS.GET_SETTINGS]: async (request, { getSettings }) => {
+  [MESSAGE_ACTIONS.GET_SETTINGS]: async (_request, { getSettings }) => {
     return await getSettings();
   },
 
   [MESSAGE_ACTIONS.SET_SETTINGS]: async (request, { setSettings }) => {
-    await setSettings(request.data);
+    const req = request as unknown as { data: Partial<Settings> };
+    await setSettings(req.data);
     return { success: true };
   },
 
   [MESSAGE_ACTIONS.SNOOZE]: async (request, { snooze }) => {
-    await snooze(request.tab, request.popTime, request.groupId);
+    const req = request as unknown as { tab: SnoozedItemV2 | chrome.tabs.Tab; popTime: number; groupId?: string };
+    // Ensure tab has a URL (chrome.tabs.Tab.url can be undefined)
+    if (!req.tab.url) {
+      throw new Error('Cannot snooze a tab without a URL');
+    }
+    const tabWithUrl = { ...req.tab, url: req.tab.url };
+    await snooze(tabWithUrl, req.popTime, req.groupId);
     return { success: true };
   },
 
   [MESSAGE_ACTIONS.REMOVE_SNOOZED_TAB]: async (request, { removeSnoozedTabWrapper }) => {
-    await removeSnoozedTabWrapper(request.tab);
+    const req = request as unknown as { tab: SnoozedItemV2 };
+    await removeSnoozedTabWrapper(req.tab);
     return { success: true };
   },
 
-  [MESSAGE_ACTIONS.CLEAR_ALL_SNOOZED_TABS]: async (request, { setSnoozedTabs }) => {
+  [MESSAGE_ACTIONS.CLEAR_ALL_SNOOZED_TABS]: async (_request, { setSnoozedTabs }) => {
     await setSnoozedTabs({ tabCount: 0 });
     return { success: true };
   },
 
   [MESSAGE_ACTIONS.REMOVE_WINDOW_GROUP]: async (request, { removeWindowGroup }) => {
-    await removeWindowGroup(request.groupId);
+    const req = request as unknown as { groupId: string };
+    await removeWindowGroup(req.groupId);
     return { success: true };
   },
 
   [MESSAGE_ACTIONS.RESTORE_WINDOW_GROUP]: async (request, { restoreWindowGroup }) => {
-    await restoreWindowGroup(request.groupId);
+    const req = request as unknown as { groupId: string };
+    await restoreWindowGroup(req.groupId);
     return { success: true };
   },
 
   [MESSAGE_ACTIONS.IMPORT_TABS]: async (request, { importTabs }) => {
-    return await importTabs(request.data);
+    const req = request as unknown as { data: unknown };
+    return await importTabs(req.data);
   },
 
-  [MESSAGE_ACTIONS.EXPORT_TABS]: async (request, { getExportData }) => {
+  [MESSAGE_ACTIONS.EXPORT_TABS]: async (_request, { getExportData }) => {
     return await getExportData();
   },
 };
 
 /**
  * Dispatches a message to the appropriate handler
- * @param {MessageRequest} request - Message request
- * @param {Object} services - Service dependencies (snoozeLogic functions)
- * @returns {Promise<MessageResponse>} Response from handler
- * @throws {Error} If handler not found or validation fails
  */
-export async function dispatchMessage(request, services) {
+export async function dispatchMessage(request: MessageRequest, services: MessageServices): Promise<MessageResponse> {
   // Validate request
   const validation = validateMessageRequest(request);
   if (!validation.valid) {
@@ -209,7 +245,7 @@ export async function dispatchMessage(request, services) {
   }
 
   // Get handler
-  const handler = MESSAGE_HANDLERS[request.action];
+  const handler = MESSAGE_HANDLERS[request.action as MessageAction];
   if (!handler) {
     throw new Error(`No handler registered for action: ${request.action}`);
   }
@@ -220,26 +256,26 @@ export async function dispatchMessage(request, services) {
 
 /**
  * Helper to send a message and handle response
- * @param {string} action - Action from MESSAGE_ACTIONS
- * @param {Object} [payload] - Message payload
- * @returns {Promise<MessageResponse>} Response from background
  */
-export function sendMessage(action, payload = {}) {
+export function sendMessage<T extends MessageResponse = MessageResponse>(
+  action: MessageAction,
+  payload: Record<string, unknown> = {}
+): Promise<T> {
   return new Promise((resolve, reject) => {
     const message = createMessage(action, payload);
 
-    chrome.runtime.sendMessage(message, (response) => {
+    chrome.runtime.sendMessage(message, (response: T | { error: string }) => {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError.message));
         return;
       }
 
-      if (response && response.error) {
+      if (response && 'error' in response) {
         reject(new Error(response.error));
         return;
       }
 
-      resolve(response);
+      resolve(response as T);
     });
   });
 }

@@ -18,7 +18,7 @@ export default defineConfig({
       input: {
         popup: resolve(__dirname, 'src/popup/index.html'),
         options: resolve(__dirname, 'src/options/index.html'),
-        background: resolve(__dirname, 'src/background/serviceWorker.js')
+        background: resolve(__dirname, 'src/background/serviceWorker.ts')
       },
       output: {
         entryFileNames: 'assets/[name].js',
@@ -27,7 +27,7 @@ export default defineConfig({
         // Prevent code splitting for service worker - inline validation into background
         manualChunks(id) {
           // Don't create separate chunks for background dependencies
-          if (id.includes('validation.js') || id.includes('snoozeLogic.js')) {
+          if (/(^|[\\/])(validation|snoozeLogic)\.[tj]s$/.test(id)) {
             return undefined; // inline into the importing entry
           }
         }

@@ -1,11 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import {
   detectSchemaVersion,
   runMigrations,
   ensureValidStorage,
   CURRENT_SCHEMA_VERSION,
   SCHEMA_MIGRATIONS
-} from './schemaVersioning.js';
+} from './schemaVersioning';
+import type { StorageV2 } from '../types';
 
 describe('Schema Versioning', () => {
   describe('detectSchemaVersion', () => {
@@ -85,8 +86,31 @@ describe('Schema Versioning', () => {
       expect(Object.keys(result.items).length).toBeGreaterThan(0);
     });
 
+    it('V1→V2 migration skips entries with invalid/restricted URLs', async () => {
+      const v1Data = {
+        tabCount: 7,
+        '1234567890': [
+          { id: 'valid', url: 'https://example.com', popTime: 1234567890, creationTime: 1234567800 },
+          { id: 'no-url', title: 'No URL', popTime: 1234567890, creationTime: 1234567800 },
+          { id: 'empty-url', url: '', popTime: 1234567890, creationTime: 1234567800 },
+          { id: 'whitespace-url', url: '   ', popTime: 1234567890, creationTime: 1234567800 },
+          { id: 'invalid-url', url: 'not-a-valid-url', popTime: 1234567890, creationTime: 1234567800 },
+          { id: 'chrome-url', url: 'chrome://extensions', popTime: 1234567890, creationTime: 1234567800 },
+          { id: 'file-url', url: 'file:///local/path', popTime: 1234567890, creationTime: 1234567800 },
+        ]
+      };
+
+      const result = await runMigrations(v1Data, 1, 2);
+
+      expect(result.version).toBe(2);
+      // Only the entry with valid, restorable URL should be migrated
+      expect(Object.keys(result.items).length).toBe(1);
+      const item = Object.values(result.items)[0];
+      expect(item.url).toBe('https://example.com');
+    });
+
     it('returns data unchanged if already at target version', async () => {
-      const v2Data = { version: 2, items: {}, schedule: {} };
+      const v2Data: StorageV2 = { version: 2, items: {}, schedule: {} };
       const result = await runMigrations(v2Data, 2, 2);
       expect(result).toEqual(v2Data);
     });
@@ -94,7 +118,7 @@ describe('Schema Versioning', () => {
     it('runs multiple migrations sequentially (V1 -> V2 -> V3)', async () => {
       // Setup mock V2->V3 migration for testing
       const originalMigrations = { ...SCHEMA_MIGRATIONS };
-      SCHEMA_MIGRATIONS[2] = vi.fn((data) => ({
+      (SCHEMA_MIGRATIONS as Record<number, unknown>)[2] = vi.fn((data: StorageV2) => ({
         ...data,
         version: 3,
         newField: {}
@@ -112,10 +136,10 @@ describe('Schema Versioning', () => {
       const result = await runMigrations(v1Data, 1, 3);
 
       expect(result.version).toBe(3);
-      expect(SCHEMA_MIGRATIONS[2]).toHaveBeenCalled();
+      expect((SCHEMA_MIGRATIONS as Record<number, Mock>)[2]).toHaveBeenCalled();
 
       // Cleanup
-      SCHEMA_MIGRATIONS[2] = originalMigrations[2];
+      (SCHEMA_MIGRATIONS as Record<number, unknown>)[2] = originalMigrations[2];
     });
   });
 
@@ -123,14 +147,14 @@ describe('Schema Versioning', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       // Mock chrome.storage.local
-      global.chrome = {
+      globalThis.chrome = {
         storage: {
           local: {
             get: vi.fn(),
             set: vi.fn()
           }
         }
-      };
+      } as unknown as typeof chrome;
     });
 
     it('returns valid V2 data with version field added', async () => {
@@ -141,7 +165,7 @@ describe('Schema Versioning', () => {
         schedule: { '123': ['id-1'] }
       };
 
-      chrome.storage.local.get.mockResolvedValue({ snoooze_v2: v2Data });
+      (chrome.storage.local.get as Mock).mockResolvedValue({ snoooze_v2: v2Data });
 
       const result = await ensureValidStorage();
 
@@ -161,7 +185,7 @@ describe('Schema Versioning', () => {
         }]
       };
 
-      chrome.storage.local.get.mockResolvedValue({ snoozedTabs: v1Data });
+      (chrome.storage.local.get as Mock).mockResolvedValue({ snoozedTabs: v1Data });
 
       const result = await ensureValidStorage();
 
@@ -183,7 +207,7 @@ describe('Schema Versioning', () => {
         }
       };
 
-      chrome.storage.local.get.mockResolvedValue({ snoooze_v2: invalidV2 });
+      (chrome.storage.local.get as Mock).mockResolvedValue({ snoooze_v2: invalidV2 });
 
       const result = await ensureValidStorage();
 
@@ -195,7 +219,7 @@ describe('Schema Versioning', () => {
     });
 
     it('returns empty V2 structure for null/missing data', async () => {
-      chrome.storage.local.get.mockResolvedValue({});
+      (chrome.storage.local.get as Mock).mockResolvedValue({});
 
       const result = await ensureValidStorage();
 
