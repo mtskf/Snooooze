@@ -88,6 +88,11 @@ function migrateV1toV2(v1Data: V1LegacyData): StorageV2 {
     if (!schedule[time]) schedule[time] = [];
 
     for (const tab of tabs as V1TabEntry[]) {
+      // Skip entries without URL - they cannot be restored
+      if (!tab.url) {
+        continue;
+      }
+
       // Generate unique ID (handle existing IDs from tab data)
       let id = tab.id || generateUUID();
       while (items[id]) {
@@ -97,7 +102,7 @@ function migrateV1toV2(v1Data: V1LegacyData): StorageV2 {
       // Ensure popTime field exists (required for validation)
       const entry: SnoozedItemV2 = {
         id,
-        url: tab.url || '',
+        url: tab.url,
         title: tab.title,
         favicon: tab.favicon,
         creationTime: tab.creationTime || Date.now(),

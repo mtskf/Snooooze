@@ -179,6 +179,24 @@ describe('messages', () => {
       expect(result).toEqual({ success: true });
     });
 
+    it('snooze handler throws error when tab has no URL', async () => {
+      const mockService = {
+        snooze: vi.fn().mockResolvedValue(undefined),
+      };
+
+      const request = {
+        action: MESSAGE_ACTIONS.SNOOZE,
+        tab: { title: 'No URL Tab' }, // Missing url
+        popTime: 123456789,
+      };
+
+      await expect(
+        MESSAGE_HANDLERS[MESSAGE_ACTIONS.SNOOZE](request as never, mockService as never)
+      ).rejects.toThrow('Cannot snooze a tab without a URL');
+
+      expect(mockService.snooze).not.toHaveBeenCalled();
+    });
+
     it('importTabs handler calls importTabs with data', async () => {
       const mockResult = { success: true, addedCount: 5 };
       const mockService = {

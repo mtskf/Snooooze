@@ -86,6 +86,25 @@ describe('Schema Versioning', () => {
       expect(Object.keys(result.items).length).toBeGreaterThan(0);
     });
 
+    it('V1→V2 migration skips entries without URL', async () => {
+      const v1Data = {
+        tabCount: 3,
+        '1234567890': [
+          { id: 'valid', url: 'https://example.com', popTime: 1234567890, creationTime: 1234567800 },
+          { id: 'no-url', title: 'No URL', popTime: 1234567890, creationTime: 1234567800 },
+          { id: 'empty-url', url: '', popTime: 1234567890, creationTime: 1234567800 },
+        ]
+      };
+
+      const result = await runMigrations(v1Data, 1, 2);
+
+      expect(result.version).toBe(2);
+      // Only the entry with valid URL should be migrated
+      expect(Object.keys(result.items).length).toBe(1);
+      const item = Object.values(result.items)[0];
+      expect(item.url).toBe('https://example.com');
+    });
+
     it('returns data unchanged if already at target version', async () => {
       const v2Data: StorageV2 = { version: 2, items: {}, schedule: {} };
       const result = await runMigrations(v2Data, 2, 2);
