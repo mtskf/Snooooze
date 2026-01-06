@@ -181,7 +181,7 @@ export const windows = {
   /**
    * Gets information about a window
    */
-  async get(windowId: number, getInfo?: chrome.windows.GetInfo): Promise<chrome.windows.Window> {
+  async get(windowId: number, getInfo?: chrome.windows.QueryOptions): Promise<chrome.windows.Window> {
     try {
       return await chrome.windows.get(windowId, getInfo);
     } catch (error) {
@@ -193,7 +193,7 @@ export const windows = {
   /**
    * Gets the last focused window
    */
-  async getLastFocused(getInfo?: chrome.windows.GetInfo): Promise<chrome.windows.Window> {
+  async getLastFocused(getInfo?: chrome.windows.QueryOptions): Promise<chrome.windows.Window> {
     try {
       return await chrome.windows.getLastFocused(getInfo);
     } catch (error) {
@@ -341,7 +341,7 @@ export const commands = {
    */
   async getAll(): Promise<chrome.commands.Command[]> {
     return new Promise((resolve, reject) => {
-      chrome.commands.getAll((cmds) => {
+      chrome.commands.getAll((cmds: chrome.commands.Command[]) => {
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message));
           return;

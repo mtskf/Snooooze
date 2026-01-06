@@ -39,7 +39,7 @@ describe('settingsHelper', () => {
 
       expect(result['start-day']).toBe('9:00 AM');
       expect(result['end-day']).toBe(DEFAULT_SETTINGS['end-day']);
-      expect((result as Record<string, unknown>).customKey).toBe('customValue');
+      expect((result as unknown as Record<string, unknown>).customKey).toBe('customValue');
       expect(result.timezone).toBeTruthy();
     });
 
