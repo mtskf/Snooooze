@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
+    "typecheck": "tsc --noEmit",
     "build:firefox": "vite build && cp public/manifest.firefox.json dist/manifest.json",
     "build:edge": "vite build"
   },
