@@ -57,21 +57,124 @@
         }
     }
     </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is a tab snoozer?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "A tab snoozer is a browser extension that lets you temporarily close tabs and schedule them to reopen automatically at a later time. Instead of keeping dozens of tabs open, you can snooze them for 'Later Today', 'Tomorrow', or any custom date, and they'll reappear when you need them."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I snooze a tab in Chrome?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "With Snooooze extension: 1) Press Cmd+. (Mac) or Ctrl+. (Windows) to open the popup. 2) Press a single key like L (Later Today), T (Tomorrow), or S (Weekend). 3) The tab closes and automatically reopens at your scheduled time."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Will snoozed tabs reopen if Chrome is closed?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. Snooooze uses Chrome's alarm system to restore tabs even if Chrome was closed or your computer was sleeping. When you reopen Chrome after the scheduled time, your snoozed tabs will automatically restore."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is Snooooze free and private?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, Snooooze is completely free and open-source (MIT license). All your data is stored locally on your device. There's no cloud sync, no account required, and no tracking. Your browsing data never leaves your computer."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I snooze multiple tabs or an entire window?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. Select multiple tabs (Cmd/Ctrl+Click) and snooze them together. To snooze an entire window, hold Shift while pressing any snooze shortcut. Window tabs are restored together in a new window."
+                }
+            }
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to Snooze Browser Tabs with Snooooze",
+        "description": "Learn how to use Snooooze Chrome extension to snooze tabs and schedule them to reopen later.",
+        "totalTime": "PT1M",
+        "tool": {
+            "@type": "HowToTool",
+            "name": "Snooooze Chrome Extension"
+        },
+        "step": [
+            {
+                "@type": "HowToStep",
+                "position": 1,
+                "name": "Install Snooooze",
+                "text": "Install Snooooze from the Chrome Web Store. Click 'Add to Chrome' and confirm the installation.",
+                "url": "https://chromewebstore.google.com/detail/snooooze/gncjidjnndmkohhhnijekcjiakmllonk"
+            },
+            {
+                "@type": "HowToStep",
+                "position": 2,
+                "name": "Open Snooooze Popup",
+                "text": "Press Cmd+. (Mac) or Ctrl+. (Windows) to open the Snooooze popup on any tab you want to snooze."
+            },
+            {
+                "@type": "HowToStep",
+                "position": 3,
+                "name": "Choose When to Restore",
+                "text": "Press L for Later Today, T for Tomorrow, S for Weekend, or P to pick a custom date. The tab will close immediately."
+            },
+            {
+                "@type": "HowToStep",
+                "position": 4,
+                "name": "Tab Auto-Restores",
+                "text": "At your scheduled time, the tab automatically reopens. No action needed - just continue browsing."
+            }
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": [".hero h1", ".hero-tagline", ".feature-card h3", ".feature-card p"]
+        },
+        "name": "Snooooze - Tab Snoozer for Chrome",
+        "description": "Snooooze is a free Chrome extension that lets you snooze browser tabs and schedule them to reopen later. Close tabs now, auto-restore when you need them."
+    }
+    </script>
 </head>
 <body>
     <!-- Language Toggle (shadcn/ui Tabs style) -->
-    <div class="lang-toggle">
-        <div class="lang-tabs" role="tablist">
+    <header class="lang-toggle" role="banner">
+        <nav class="lang-tabs" role="tablist" aria-label="Language selection">
             <button id="lang-en" class="lang-tab" role="tab" aria-selected="true" data-lang="en">
                 <span class="lang-flag">🇺🇸</span> English
             </button>
             <button id="lang-ja" class="lang-tab" role="tab" aria-selected="false" data-lang="ja">
                 <span class="lang-flag">🇯🇵</span> 日本語
             </button>
-        </div>
-    </div>
+        </nav>
+    </header>
 
-    <div class="container">
+    <main id="main-content">
+    <article class="container" itemscope itemtype="https://schema.org/SoftwareApplication">
+        <meta itemprop="name" content="Snooooze">
+        <meta itemprop="applicationCategory" content="BrowserApplication">
         <!-- Hero Section -->
         <section class="hero">
             <div class="badge">v0.3.2</div>
@@ -93,7 +196,7 @@
             </div>
 
         </section>
-    </div>
+    </article>
 
     <!-- Features Section -->
     <section class="features">
@@ -155,9 +258,10 @@
             </div>
         </div>
     </section>
+    </main>
 
     <!-- Footer -->
-    <footer>
+    <footer role="contentinfo">
         <div class="container">
             <div class="footer-links">
                 <a href="https://github.com/mtskf/Snooooze" target="_blank" class="footer-link" rel="noopener noreferrer">
