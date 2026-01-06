@@ -1,6 +1,30 @@
 import { useEffect, useRef } from "react";
 import { runtime, tabs } from "@/utils/ChromeApi";
 
+interface SnoozeItem {
+  id: string;
+  shortcuts: string[];
+}
+
+type Scope = "selected" | "window";
+
+interface UseKeyboardNavigationProps {
+  items: SnoozeItem[];
+  focusedIndex: number;
+  setFocusedIndex: React.Dispatch<React.SetStateAction<number>>;
+  setScope: React.Dispatch<React.SetStateAction<Scope>>;
+  scope: Scope;
+  handleSnooze: (id: string) => void;
+  handleSnoozeWithScope: (id: string, scope: Scope) => void;
+  handleOneMinuteSnooze: (scope: Scope) => void;
+  setIsCalendarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setCalendarScope: React.Dispatch<React.SetStateAction<string>>;
+  isCalendarOpen: boolean;
+  pickDateShortcut: string | null;
+  snoozedItemsShortcut: string | null;
+  settingsShortcut: string | null;
+}
+
 export function useKeyboardNavigation({
   items,
   focusedIndex,
@@ -16,12 +40,12 @@ export function useKeyboardNavigation({
   pickDateShortcut,
   snoozedItemsShortcut,
   settingsShortcut,
-}) {
+}: UseKeyboardNavigationProps): void {
   // Hidden command: track consecutive "j" presses
   const jPressRef = useRef({ count: 0, lastTime: 0 });
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.target.tagName === "INPUT") return; // Don't trigger when typing
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).tagName === "INPUT") return; // Don't trigger when typing
       if (isCalendarOpen) return; // Disable shortcuts when calendar is open
 
       let key = e.key.toUpperCase();
@@ -40,7 +64,7 @@ export function useKeyboardNavigation({
         if (jPressRef.current.count >= 3) {
           jPressRef.current.count = 0;
           // Shift held or window scope selected = snooze window
-          const targetScope = e.shiftKey || scope === "window" ? "window" : "selected";
+          const targetScope: Scope = e.shiftKey || scope === "window" ? "window" : "selected";
           handleOneMinuteSnooze(targetScope);
           return;
         }
@@ -89,7 +113,7 @@ export function useKeyboardNavigation({
       }
 
       // Map Shift+Number symbols back to numbers
-      const shiftMap = {
+      const shiftMap: Record<string, string> = {
         "!": "1",
         "@": "2",
         "#": "3",
@@ -143,7 +167,7 @@ export function useKeyboardNavigation({
       }
     };
 
-    const handleKeyUp = (e) => {
+    const handleKeyUp = (e: KeyboardEvent) => {
       // Shift release always returns to 'selected'
       if (e.key === "Shift") {
         setScope("selected");
