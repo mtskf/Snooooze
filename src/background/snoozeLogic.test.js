@@ -21,7 +21,7 @@ vi.mock('../utils/uuid.js', async (importOriginal) => {
   };
 });
 
-import { generateUUID } from '../utils/uuid.js';
+import { generateUUID } from '../utils/uuid';
 
 // Mocks
 const chromeMock = {

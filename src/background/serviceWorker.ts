@@ -1,8 +1,9 @@
 /**
  * Snooooze
- * background.js (Manifest V3 Service Worker)
+ * background.ts (Manifest V3 Service Worker)
  */
 
+import type { MessageServices } from '../messages';
 import {
   initStorage,
   popCheck,
@@ -39,22 +40,29 @@ chrome.runtime.onStartup.addListener(async () => {
 });
 
 // Alarm listener for periodic checks
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener((alarm: chrome.alarms.Alarm) => {
   if (alarm.name === "popCheck") {
     popCheck();
   }
 });
 
 // Message listener for communication with Popup/Options
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((
+  request: unknown,
+  _sender: chrome.runtime.MessageSender,
+  sendResponse: (response?: unknown) => void
+) => {
   handleMessage(request, sendResponse);
   return true; // Indicates async response
 });
 
-async function handleMessage(request, sendResponse) {
+async function handleMessage(
+  request: unknown,
+  sendResponse: (response: unknown) => void
+): Promise<void> {
   try {
     // Create services object with all dependencies needed by message handlers
-    const services = {
+    const services: MessageServices = {
       getSnoozedTabsV2,
       setSnoozedTabs,
       getSettings,
@@ -68,29 +76,30 @@ async function handleMessage(request, sendResponse) {
     };
 
     // Dispatch to appropriate handler using message contract
-    const response = await dispatchMessage(request, services);
+    const response = await dispatchMessage(request as Parameters<typeof dispatchMessage>[0], services);
     sendResponse(response);
   } catch (error) {
-    // console.error("Error handling message:", error);
-    sendResponse({ error: error.message });
+    sendResponse({ error: (error as Error).message });
   }
 }
 
 /**
  * Check for pending recovery notification and show it (with deduplication)
  */
-async function checkPendingRecoveryNotification() {
+async function checkPendingRecoveryNotification(): Promise<void> {
   try {
     // Check if there's a pending notification from initStorage
     const session = await storage.getSession(['pendingRecoveryNotification', 'lastRecoveryNotifiedAt']);
 
     if (session.pendingRecoveryNotification !== undefined) {
-      const tabCount = session.pendingRecoveryNotification;
+      const tabCount = session.pendingRecoveryNotification as number;
       const now = Date.now();
       const NOTIFICATION_COOLDOWN = 5 * 60 * 1000; // 5 minutes
 
+      const lastNotified = session.lastRecoveryNotifiedAt as number | undefined;
+
       // Check if we recently showed a notification
-      if (!session.lastRecoveryNotifiedAt || (now - session.lastRecoveryNotifiedAt) > NOTIFICATION_COOLDOWN) {
+      if (!lastNotified || (now - lastNotified) > NOTIFICATION_COOLDOWN) {
         // Show notification
         await notifications.create('recovery-notification', {
           type: 'basic',
@@ -116,7 +125,7 @@ async function checkPendingRecoveryNotification() {
 }
 
 // Notification click handler - open Options page
-chrome.notifications.onClicked.addListener((notificationId) => {
+chrome.notifications.onClicked.addListener((notificationId: string) => {
   if (notificationId === 'storage-warning' || notificationId === 'recovery-notification') {
     tabs.create({ url: runtime.getURL('options/index.html') });
   } else if (notificationId === 'restore-failed') {

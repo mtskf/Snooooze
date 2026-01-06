@@ -1,11 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import {
   detectSchemaVersion,
   runMigrations,
   ensureValidStorage,
   CURRENT_SCHEMA_VERSION,
   SCHEMA_MIGRATIONS
-} from './schemaVersioning.js';
+} from './schemaVersioning';
+import type { StorageV2 } from '../types';
 
 describe('Schema Versioning', () => {
   describe('detectSchemaVersion', () => {
@@ -86,7 +87,7 @@ describe('Schema Versioning', () => {
     });
 
     it('returns data unchanged if already at target version', async () => {
-      const v2Data = { version: 2, items: {}, schedule: {} };
+      const v2Data: StorageV2 = { version: 2, items: {}, schedule: {} };
       const result = await runMigrations(v2Data, 2, 2);
       expect(result).toEqual(v2Data);
     });
@@ -94,7 +95,7 @@ describe('Schema Versioning', () => {
     it('runs multiple migrations sequentially (V1 -> V2 -> V3)', async () => {
       // Setup mock V2->V3 migration for testing
       const originalMigrations = { ...SCHEMA_MIGRATIONS };
-      SCHEMA_MIGRATIONS[2] = vi.fn((data) => ({
+      (SCHEMA_MIGRATIONS as Record<number, unknown>)[2] = vi.fn((data: StorageV2) => ({
         ...data,
         version: 3,
         newField: {}
@@ -112,10 +113,10 @@ describe('Schema Versioning', () => {
       const result = await runMigrations(v1Data, 1, 3);
 
       expect(result.version).toBe(3);
-      expect(SCHEMA_MIGRATIONS[2]).toHaveBeenCalled();
+      expect((SCHEMA_MIGRATIONS as Record<number, Mock>)[2]).toHaveBeenCalled();
 
       // Cleanup
-      SCHEMA_MIGRATIONS[2] = originalMigrations[2];
+      (SCHEMA_MIGRATIONS as Record<number, unknown>)[2] = originalMigrations[2];
     });
   });
 
@@ -123,14 +124,14 @@ describe('Schema Versioning', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       // Mock chrome.storage.local
-      global.chrome = {
+      globalThis.chrome = {
         storage: {
           local: {
             get: vi.fn(),
             set: vi.fn()
           }
         }
-      };
+      } as unknown as typeof chrome;
     });
 
     it('returns valid V2 data with version field added', async () => {
@@ -141,7 +142,7 @@ describe('Schema Versioning', () => {
         schedule: { '123': ['id-1'] }
       };
 
-      chrome.storage.local.get.mockResolvedValue({ snoooze_v2: v2Data });
+      (chrome.storage.local.get as Mock).mockResolvedValue({ snoooze_v2: v2Data });
 
       const result = await ensureValidStorage();
 
@@ -161,7 +162,7 @@ describe('Schema Versioning', () => {
         }]
       };
 
-      chrome.storage.local.get.mockResolvedValue({ snoozedTabs: v1Data });
+      (chrome.storage.local.get as Mock).mockResolvedValue({ snoozedTabs: v1Data });
 
       const result = await ensureValidStorage();
 
@@ -183,7 +184,7 @@ describe('Schema Versioning', () => {
         }
       };
 
-      chrome.storage.local.get.mockResolvedValue({ snoooze_v2: invalidV2 });
+      (chrome.storage.local.get as Mock).mockResolvedValue({ snoooze_v2: invalidV2 });
 
       const result = await ensureValidStorage();
 
@@ -195,7 +196,7 @@ describe('Schema Versioning', () => {
     });
 
     it('returns empty V2 structure for null/missing data', async () => {
-      chrome.storage.local.get.mockResolvedValue({});
+      (chrome.storage.local.get as Mock).mockResolvedValue({});
 
       const result = await ensureValidStorage();
 

@@ -5,56 +5,19 @@
  * and handler mappings for chrome.runtime messaging.
  */
 
-// Local type definitions (will be replaced with imports from types.ts after Phase 2 merge)
-// TODO: Replace with `import type { ... } from './types'` after Phase 2 is merged
+import type {
+  StorageV2,
+  Settings,
+  SnoozedItemV2,
+  SuccessResponse,
+  ErrorResponse,
+  ImportTabsResponse,
+  MessageRequest,
+  MessageResponse,
+} from './types';
 
-export interface SnoozedItemV2 {
-  id: string;
-  url: string;
-  title?: string;
-  favicon?: string | null;
-  creationTime: number;
-  popTime: number;
-  groupId?: string | null;
-  index?: number;
-}
-
-export interface StorageV2 {
-  version: 2;
-  items: Record<string, SnoozedItemV2>;
-  schedule: Record<string, string[]>;
-}
-
-export interface Settings {
-  'start-day': string;
-  'end-day': string;
-  'week-begin': number;
-  'weekend-begin': number;
-  timezone?: string;
-  shortcuts?: Record<string, string[]>;
-  appearance?: 'default' | 'vivid' | 'heatmap';
-}
-
-export interface SuccessResponse {
-  success: boolean;
-}
-
-export interface ErrorResponse {
-  error: string;
-}
-
-export interface ImportTabsResponse {
-  success: boolean;
-  addedCount?: number;
-  error?: string;
-}
-
-export type MessageResponse = StorageV2 | Settings | SuccessResponse | ErrorResponse | ImportTabsResponse;
-
-export interface MessageRequest {
-  action: string;
-  [key: string]: unknown;
-}
+// Re-export types for consumers
+export type { StorageV2, Settings, SnoozedItemV2 };
 
 /**
  * Message action constants
@@ -174,6 +137,16 @@ export function createMessage(action: MessageAction, payload: Record<string, unk
   return request as MessageRequest;
 }
 
+// Tab input for snooze function - matches both chrome.tabs.Tab and SnoozedItemV2
+interface SnoozeTabInput {
+  url: string;
+  title?: string;
+  favIconUrl?: string;
+  favicon?: string | null;
+  index?: number;
+  id?: number | string;
+}
+
 /**
  * Service dependencies for message handlers
  */
@@ -182,7 +155,7 @@ export interface MessageServices {
   setSnoozedTabs: (data: unknown) => Promise<void>;
   getSettings: () => Promise<Settings>;
   setSettings: (data: Partial<Settings>) => Promise<void>;
-  snooze: (tab: SnoozedItemV2 | chrome.tabs.Tab, popTime: number, groupId?: string) => Promise<void>;
+  snooze: (tab: SnoozeTabInput, popTime: number, groupId?: string | null) => Promise<void>;
   removeSnoozedTabWrapper: (tab: SnoozedItemV2) => Promise<void>;
   removeWindowGroup: (groupId: string) => Promise<void>;
   restoreWindowGroup: (groupId: string) => Promise<void>;
@@ -219,7 +192,12 @@ export const MESSAGE_HANDLERS: Record<MessageAction, MessageHandler> = {
 
   [MESSAGE_ACTIONS.SNOOZE]: async (request, { snooze }) => {
     const req = request as unknown as { tab: SnoozedItemV2 | chrome.tabs.Tab; popTime: number; groupId?: string };
-    await snooze(req.tab, req.popTime, req.groupId);
+    // Ensure tab has a URL (chrome.tabs.Tab.url can be undefined)
+    if (!req.tab.url) {
+      throw new Error('Cannot snooze a tab without a URL');
+    }
+    const tabWithUrl = { ...req.tab, url: req.tab.url };
+    await snooze(tabWithUrl, req.popTime, req.groupId);
     return { success: true };
   },
 
