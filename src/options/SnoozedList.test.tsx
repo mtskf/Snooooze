@@ -118,7 +118,10 @@ describe('SnoozedList', () => {
     );
     expect(clearGroupButton).toBeTruthy();
     fireEvent.click(clearGroupButton!);
-    expect(onClearGroup).toHaveBeenCalledWith('g1');
+    expect(onClearGroup).toHaveBeenCalledWith('g1', expect.arrayContaining([
+      expect.objectContaining({ title: 'Grouped Tab A' }),
+      expect.objectContaining({ title: 'Grouped Tab B' }),
+    ]));
 
     fireEvent.click(screen.getByText('Grouped Tab A'));
     expect(onClearTab).toHaveBeenCalledWith(
