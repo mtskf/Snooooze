@@ -65,6 +65,7 @@ import {
   selectSnoozedItemsByDay,
   selectTabCount,
 } from "@/utils/selectors";
+import { useUndoDelete } from "./hooks/useUndoDelete";
 import type { StorageV2, Settings as SettingsType, SnoozedItemV2 } from "@/types";
 
 interface FailedTab {
@@ -179,16 +180,32 @@ export default function Options() {
     });
   };
 
-  const clearTab = (tab: SnoozedItemV2) => {
+  // Actual delete handlers (called after undo timeout)
+  const executeDeleteTab = useCallback((tab: SnoozedItemV2) => {
     sendMessage(MESSAGE_ACTIONS.REMOVE_SNOOZED_TAB, { tab }).catch(error => {
       console.error('Failed to clear tab:', error);
     });
-  };
+  }, []);
 
-  const clearGroup = (groupId: string) => {
+  const executeDeleteGroup = useCallback((groupId: string) => {
     sendMessage(MESSAGE_ACTIONS.REMOVE_WINDOW_GROUP, { groupId }).catch(error => {
       console.error('Failed to clear group:', error);
     });
+  }, []);
+
+  // Undo delete hook
+  const { scheduleTabDelete, scheduleGroupDelete, pendingTabIds } = useUndoDelete({
+    onDeleteTab: executeDeleteTab,
+    onDeleteGroup: executeDeleteGroup,
+  });
+
+  // UI handlers that schedule deletions with undo
+  const clearTab = (tab: SnoozedItemV2) => {
+    scheduleTabDelete(tab);
+  };
+
+  const clearGroup = (groupId: string, groupItems: SnoozedItemV2[]) => {
+    scheduleGroupDelete(groupId, groupItems);
   };
 
   const restoreGroup = async (groupId: string) => {
@@ -386,6 +403,7 @@ export default function Options() {
                 onClearGroup={clearGroup}
                 onRestoreGroup={restoreGroup}
                 appearance={settings.appearance || "default"}
+                pendingTabIds={pendingTabIds}
               />
             </CardContent>
           </Card>

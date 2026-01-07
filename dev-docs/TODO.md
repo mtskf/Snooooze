@@ -9,11 +9,11 @@
 
 ## Active
 
-(none)
-
+- [ ] 💡✨[S] Favicon欠落時のフォールバック: `TabCard` で `favIconUrl` が無い/読込エラー時にデフォルトアイコンを表示。
 
 ## Completed
 
+- [x] ⚠️✨[S] Undo削除: グループ/タブ削除後に5秒間「元に戻す」トーストを表示。誤削除防止。
 - [x] 💡 🔧 [S] **重複コード統合** - `getHex` が `Options.tsx` と `SnoozedList.tsx` で重複 → `utils/colorUtils.ts` に共通化
 - [x] ⚠️ 🐛 [S] **非復元URLのサニタイズ漏れ** - `sanitizeSnoozedTabsV2` で `isRestorableUrl` を適用し、インポート/復元時に chrome:// 等を除外
 - [x] 🚨 🐛 [S] **storageLock未適用の書き込み経路 (ユーザー操作)** - `importTabs`, `setSnoozedTabs` が `storageLock` を経由せず `popCheck`/`snooze` と競合しうる。ロック経由に統一

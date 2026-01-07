@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, AppWindow } from "lucide-react";
@@ -6,14 +6,15 @@ import { VIVID_COLORS, HEATMAP_COLORS } from "@/utils/constants";
 import { getHexFromClass } from "@/utils/colorUtils";
 import { cn } from "@/lib/utils";
 import type { SnoozedItemV2 } from "@/types";
-import type { DayGroup } from "@/utils/selectors";
+import type { DayGroup, DisplayItem } from "@/utils/selectors";
 
 interface SnoozedListProps {
   dayGroups?: DayGroup[];
   onClearTab?: (tab: SnoozedItemV2) => void;
-  onClearGroup?: (groupId: string) => void;
+  onClearGroup?: (groupId: string, groupItems: SnoozedItemV2[]) => void;
   onRestoreGroup?: (groupId: string) => void;
   appearance?: "default" | "vivid" | "heatmap";
+  pendingTabIds?: Set<string>;
 }
 
 const SnoozedList = React.memo(
@@ -23,7 +24,37 @@ const SnoozedList = React.memo(
     onClearGroup,
     onRestoreGroup,
     appearance = "default",
+    pendingTabIds = new Set(),
   }: SnoozedListProps) => {
+    // Filter out pending deletions from display
+    const filteredDayGroups = useMemo(() => {
+      if (pendingTabIds.size === 0) return dayGroups;
+
+      return dayGroups
+        .map((day) => {
+          const filteredItems = day.displayItems
+            .map((item): DisplayItem | null => {
+              if (item.type === 'tab') {
+                // Skip individual tab if pending
+                if (pendingTabIds.has(item.data.id)) return null;
+                return item;
+              } else {
+                // For groups, filter out pending tabs
+                const remainingTabs = item.groupItems.filter(
+                  (tab) => !pendingTabIds.has(tab.id)
+                );
+                // Skip entire group if all tabs are pending
+                if (remainingTabs.length === 0) return null;
+                return { ...item, groupItems: remainingTabs };
+              }
+            })
+            .filter((item): item is DisplayItem => item !== null);
+
+          return { ...day, displayItems: filteredItems };
+        })
+        .filter((day) => day.displayItems.length > 0);
+    }, [dayGroups, pendingTabIds]);
+
     // Delete color style
     const deleteHoverStyle = (() => {
       let colorClass = "hover:text-destructive";
@@ -37,7 +68,7 @@ const SnoozedList = React.memo(
     })();
 
     const renderList = () => {
-      if (!dayGroups || dayGroups.length === 0) {
+      if (!filteredDayGroups || filteredDayGroups.length === 0) {
         return (
           <div className="text-center p-8 text-muted-foreground">
             No snoozed tabs.
@@ -45,7 +76,7 @@ const SnoozedList = React.memo(
         );
       }
 
-      return dayGroups.map((day) => {
+      return filteredDayGroups.map((day) => {
         const { displayItems } = day;
 
         return (
@@ -95,7 +126,7 @@ const SnoozedList = React.memo(
                             size="icon"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onClearGroup(groupId);
+                              onClearGroup(groupId, groupItems);
                             }}
                             className={cn(
                               "h-8 w-8 text-muted-foreground transition-colors",
