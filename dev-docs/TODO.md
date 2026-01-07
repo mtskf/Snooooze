@@ -9,9 +9,11 @@
 
 ## Active
 
-- [ ] 💡✨[S] Favicon欠落時のフォールバック: `TabCard` で `favIconUrl` が無い/読込エラー時にデフォルトアイコンを表示。
+(No active tasks)
 
 ## Completed
+
+- [x] 💡✨[S] Favicon欠落時のフォールバック: `SnoozedList` で `favicon` が無い/読込エラー時にGlobeアイコンを表示。
 
 - [x] ⚠️✨[S] Undo削除: グループ/タブ削除後に5秒間「元に戻す」トーストを表示。誤削除防止。
 - [x] 💡 🔧 [S] **重複コード統合** - `getHex` が `Options.tsx` と `SnoozedList.tsx` で重複 → `utils/colorUtils.ts` に共通化

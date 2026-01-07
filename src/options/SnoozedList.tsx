@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, AppWindow } from "lucide-react";
+import { Trash2, AppWindow, Globe } from "lucide-react";
 import { VIVID_COLORS, HEATMAP_COLORS } from "@/utils/constants";
 import { getHexFromClass } from "@/utils/colorUtils";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,34 @@ interface SnoozedListProps {
   onRestoreGroup?: (groupId: string) => void;
   appearance?: "default" | "vivid" | "heatmap";
   pendingTabIds?: Set<string>;
+}
+
+interface FaviconImageProps {
+  src?: string | null;
+  className?: string;
+  fallbackClassName?: string;
+}
+
+function FaviconImage({ src, className, fallbackClassName }: FaviconImageProps) {
+  const [hasError, setHasError] = useState(false);
+
+  // Reset error state when src changes
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (!src || hasError) {
+    return <Globe className={fallbackClassName || className} />;
+  }
+
+  return (
+    <img
+      src={src}
+      className={className}
+      alt=""
+      onError={() => setHasError(true)}
+    />
+  );
 }
 
 const SnoozedList = React.memo(
@@ -146,13 +174,11 @@ const SnoozedList = React.memo(
                             className="flex flex-row items-center justify-between group py-1"
                           >
                             <div className="flex items-center gap-2 overflow-hidden">
-                              {tab.favicon && (
-                                <img
-                                  src={tab.favicon}
-                                  className="w-3 h-3 grayscale opacity-70"
-                                  alt=""
-                                />
-                              )}
+                              <FaviconImage
+                                src={tab.favicon}
+                                className="w-3 h-3 grayscale opacity-70"
+                                fallbackClassName="w-3 h-3 text-muted-foreground opacity-70"
+                              />
                               <a
                                 href={tab.url}
                                 target="_blank"
@@ -187,13 +213,11 @@ const SnoozedList = React.memo(
                       className="flex flex-row items-center p-3 justify-between hover:bg-accent/5 transition-colors"
                     >
                       <div className="flex items-center gap-3 overflow-hidden">
-                        {tab.favicon && (
-                          <img
-                            src={tab.favicon}
-                            className="w-4 h-4 ml-1"
-                            alt=""
-                          />
-                        )}
+                        <FaviconImage
+                          src={tab.favicon}
+                          className="w-4 h-4 ml-1"
+                          fallbackClassName="w-4 h-4 ml-1 text-muted-foreground"
+                        />
                         <div className="flex flex-col overflow-hidden">
                           <a
                             href={tab.url}
