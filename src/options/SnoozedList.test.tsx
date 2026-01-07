@@ -153,4 +153,95 @@ describe('SnoozedList', () => {
     render(<SnoozedList dayGroups={invalidDayGroups} />);
     expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
+
+  it('shows fallback icon when favicon is missing', () => {
+    const dayGroupsWithoutFavicon = [
+      {
+        key: mockDate.toDateString(),
+        date: new Date(mockDate.getFullYear(), mockDate.getMonth(), mockDate.getDate()),
+        displayItems: [
+          {
+            type: 'tab' as const,
+            data: {
+              id: 'tab-1',
+              url: 'https://example.com',
+              title: 'Tab Without Favicon',
+              favicon: null,
+              creationTime: 123,
+              popTime: mockPopTime,
+            },
+          },
+        ],
+      },
+    ];
+
+    const { container } = render(<SnoozedList dayGroups={dayGroupsWithoutFavicon} />);
+    // Should render Globe icon as fallback (lucide-react icons use svg)
+    const globeIcon = container.querySelector('svg.lucide-globe');
+    expect(globeIcon).toBeInTheDocument();
+    // Should NOT render an img element
+    const img = container.querySelector('img');
+    expect(img).not.toBeInTheDocument();
+  });
+
+  it('shows favicon when available', () => {
+    const dayGroupsWithFavicon = [
+      {
+        key: mockDate.toDateString(),
+        date: new Date(mockDate.getFullYear(), mockDate.getMonth(), mockDate.getDate()),
+        displayItems: [
+          {
+            type: 'tab' as const,
+            data: {
+              id: 'tab-1',
+              url: 'https://example.com',
+              title: 'Tab With Favicon',
+              favicon: 'https://example.com/favicon.ico',
+              creationTime: 123,
+              popTime: mockPopTime,
+            },
+          },
+        ],
+      },
+    ];
+
+    const { container } = render(<SnoozedList dayGroups={dayGroupsWithFavicon} />);
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', 'https://example.com/favicon.ico');
+  });
+
+  it('shows fallback icon when favicon fails to load', () => {
+    const dayGroupsWithBrokenFavicon = [
+      {
+        key: mockDate.toDateString(),
+        date: new Date(mockDate.getFullYear(), mockDate.getMonth(), mockDate.getDate()),
+        displayItems: [
+          {
+            type: 'tab' as const,
+            data: {
+              id: 'tab-1',
+              url: 'https://example.com',
+              title: 'Tab With Broken Favicon',
+              favicon: 'https://example.com/broken.ico',
+              creationTime: 123,
+              popTime: mockPopTime,
+            },
+          },
+        ],
+      },
+    ];
+
+    const { container } = render(<SnoozedList dayGroups={dayGroupsWithBrokenFavicon} />);
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+
+    // Trigger error event
+    fireEvent.error(img!);
+
+    // After error, should show fallback icon instead of img
+    const globeIcon = container.querySelector('svg.lucide-globe');
+    expect(globeIcon).toBeInTheDocument();
+    expect(container.querySelector('img')).not.toBeInTheDocument();
+  });
 });
