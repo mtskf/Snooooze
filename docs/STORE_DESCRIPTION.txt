@@ -54,17 +54,14 @@ All data is stored locally on your device. No cloud ☁️, no tracking 👀, co
 
 == 🆕 WHAT'S NEW ==
 
+v0.3.3 ✨ UX Improvements: Undo toast for accidental deletions—restore tabs and groups instantly! Favicon fallback with Globe icon for cleaner visuals.
+
 v0.3.2 🔒 Data Safety: Fixed storage race conditions that could occur during concurrent operations. Non-restorable URLs (chrome://, about:, etc.) are now filtered from import/restore.
 
 v0.3.1 🧹 Cleanup: Fixed asset paths and removed unused UI components for a leaner, faster extension.
 
 v0.3.0 🛠️ Deep Refactor: Complete overhaul of internal architecture for maximum stability. Improved error handling and robust restoration logic means your tabs are safer than ever.
 
-v0.2.8 🐛 Bug Fixes: Storage safety fixes, improved restore reliability, and smoother keyboard shortcut handling.
-
-v0.2.7 ⚠️ Storage Warning: Snooooze now monitors your storage usage and warns you if you're approaching the limit, ensuring your tabs are always safe.
-
-v0.2.6 🛡️ Auto Backup: Your snoozed tabs are automatically backed up locally. Snooooze recovers from backups if data gets corrupted—no cloud, no tracking.
 
 
 
