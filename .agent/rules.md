@@ -4,4 +4,3 @@
 - タスク完了時は dev-docs/ を必要に応じて更新
 - TypeScript + ES Modules
 - 外部API呼び出しは `try-catch` + リトライ処理
-- コミットIDが渡された場合は、そのコミットを徹底的にレビュー
