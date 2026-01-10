@@ -3,6 +3,12 @@ import { toast } from 'sonner';
 import type { SnoozedItemV2 } from '@/types';
 
 const UNDO_DELAY_MS = 5000;
+const TITLE_MAX_LENGTH = 30;
+
+function truncateTitle(title: string | undefined): string {
+  const text = title || 'Tab';
+  return text.length > TITLE_MAX_LENGTH ? `${text.slice(0, TITLE_MAX_LENGTH)}...` : text;
+}
 
 interface PendingDeletion {
   type: 'tab' | 'group';
@@ -89,10 +95,7 @@ export function useUndoDelete({
       };
       pendingDeletionsRef.current.set(deletionKey, pending);
 
-      const title = tab.title || 'Tab';
-      const displayTitle = title.length > 30 ? `${title.slice(0, 30)}...` : title;
-
-      toast(`"${displayTitle}" deleted`, {
+      toast(`"${truncateTitle(tab.title)}" deleted`, {
         duration: UNDO_DELAY_MS,
         action: {
           label: 'Undo',

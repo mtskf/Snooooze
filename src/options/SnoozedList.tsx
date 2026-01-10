@@ -83,17 +83,16 @@ const SnoozedList = React.memo(
         .filter((day) => day.displayItems.length > 0);
     }, [dayGroups, pendingTabIds]);
 
-    // Delete color style
-    const deleteHoverStyle = (() => {
-      let colorClass = "hover:text-destructive";
-
+    // Memoized delete button hover style based on appearance theme
+    const deleteHoverStyle = useMemo(() => {
       if (appearance === "vivid" && VIVID_COLORS?.delete) {
-        colorClass = `hover:text-[${getHexFromClass(VIVID_COLORS.delete)}]`;
-      } else if (appearance === "heatmap" && HEATMAP_COLORS?.delete) {
-        colorClass = `hover:text-[${getHexFromClass(HEATMAP_COLORS.delete)}]`;
+        return `hover:text-[${getHexFromClass(VIVID_COLORS.delete)}] hover:bg-transparent`;
       }
-      return `${colorClass} hover:bg-transparent`;
-    })();
+      if (appearance === "heatmap" && HEATMAP_COLORS?.delete) {
+        return `hover:text-[${getHexFromClass(HEATMAP_COLORS.delete)}] hover:bg-transparent`;
+      }
+      return "hover:text-destructive hover:bg-transparent";
+    }, [appearance]);
 
     const renderList = () => {
       if (!filteredDayGroups || filteredDayGroups.length === 0) {
@@ -229,15 +228,7 @@ const SnoozedList = React.memo(
                             {tab.title}
                           </a>
                           <span className="text-xs text-muted-foreground flex gap-2">
-                            <span>
-                              {(() => {
-                                try {
-                                  return tab.url ? new URL(tab.url).hostname : "Unknown";
-                                } catch {
-                                  return "Unknown";
-                                }
-                              })()}
-                            </span>
+                            <span>{getHostname(tab.url)}</span>
                             <span>•</span>
                             <span>{formatTime(tab.popTime)}</span>
                           </span>
@@ -296,6 +287,15 @@ function formatTime(timestamp: number): string {
     minute: "2-digit",
     hour12: true,
   });
+}
+
+function getHostname(url: string | undefined): string {
+  if (!url) return "Unknown";
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "Unknown";
+  }
 }
 
 export default SnoozedList;
