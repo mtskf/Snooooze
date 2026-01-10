@@ -6,56 +6,33 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import {
   Trash2,
-  ExternalLink,
-  AppWindow,
   Download,
   Upload,
-  Check,
-  ChevronsUpDown,
   Inbox,
   Settings,
   Github,
   Coffee,
-  RotateCcw,
   Globe,
   Search,
   X,
-  Keyboard,
   AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SnoozedList from "./SnoozedList";
-import {
-  DEFAULT_SHORTCUTS,
-  VIVID_COLORS,
-  HEATMAP_COLORS,
-} from "@/utils/constants";
+import { VIVID_COLORS, HEATMAP_COLORS } from "@/utils/constants";
 import { getHexFromClass } from "@/utils/colorUtils";
 import TimeSettings from "./TimeSettings";
 import GlobalShortcutSettings from "./GlobalShortcutSettings";
 import SnoozeActionSettings from "./SnoozeActionSettings";
 import AppearanceSettings from "./AppearanceSettings";
-import { Kbd } from "@/components/ui/kbd";
 import { StorageService } from "@/utils/StorageService";
 import { sendMessage, MESSAGE_ACTIONS } from "@/messages";
 import { storage, commands } from "@/utils/ChromeApi";
