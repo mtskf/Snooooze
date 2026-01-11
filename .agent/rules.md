@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
+Chrome Extension (Manifest V3) - Snooze tabs and automatically restore them at a specified time
+
 Chrome拡張機能（Manifest V3）- タブをスヌーズして指定時刻に自動復元
 
 ## Commands
