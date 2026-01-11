@@ -28,32 +28,40 @@ const SnoozedList = React.memo(
     appearance = "default",
     pendingTabIds = new Set(),
   }: SnoozedListProps) => {
-    // Filter out pending deletions from display
+    // Optimistic UI filtering: Remove tabs pending deletion from display
+    // This provides instant visual feedback while background deletion completes
     const filteredDayGroups = useMemo(() => {
+      // Fast path: No filtering needed if nothing is pending
       if (pendingTabIds.size === 0) return dayGroups;
 
+      // Filter at three levels: days → items → group tabs
       return dayGroups
         .map((day) => {
+          // Level 2: Filter items within each day
           const filteredItems = day.displayItems
             .map((item): DisplayItem | null => {
               if (item.type === 'tab') {
-                // Skip individual tab if pending
+                // Skip individual tab if pending deletion
                 if (pendingTabIds.has(item.data.id)) return null;
                 return item;
               } else {
-                // For groups, filter out pending tabs
+                // Level 3: For grouped tabs, filter out pending tabs from the group
                 const remainingTabs = item.groupItems.filter(
                   (tab) => !pendingTabIds.has(tab.id)
                 );
-                // Skip entire group if all tabs are pending
+                // Skip entire group display if all tabs are pending deletion
                 if (remainingTabs.length === 0) return null;
+                // Return group with reduced tab count
                 return { ...item, groupItems: remainingTabs };
               }
             })
+            // Remove null entries (deleted tabs/empty groups)
             .filter((item): item is DisplayItem => item !== null);
 
+          // Level 1: Return day with filtered items
           return { ...day, displayItems: filteredItems };
         })
+        // Remove days that have no visible items left after filtering
         .filter((day) => day.displayItems.length > 0);
     }, [dayGroups, pendingTabIds]);
 

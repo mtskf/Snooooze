@@ -44,6 +44,28 @@ describe("formatUtils", () => {
       const tomorrow = new Date(2025, 0, 1);
       expect(formatDay(tomorrow)).toBe("Tomorrow");
     });
+
+    it("handles DST transition (spring forward)", () => {
+      // March 10, 2024 at 2 AM DST begins (in most US timezones)
+      vi.setSystemTime(new Date(2024, 2, 10, 1, 0, 0));
+      const today = new Date(2024, 2, 10, 3, 0, 0); // After DST transition
+      expect(formatDay(today)).toBe("Today");
+    });
+
+    it("handles DST transition (fall back)", () => {
+      // November 3, 2024 at 2 AM DST ends (in most US timezones)
+      vi.setSystemTime(new Date(2024, 10, 3, 1, 0, 0));
+      const today = new Date(2024, 10, 3, 1, 30, 0);
+      expect(formatDay(today)).toBe("Today");
+    });
+
+    it("ignores time component when comparing dates", () => {
+      vi.setSystemTime(new Date(2024, 0, 15, 23, 59, 0));
+      const todayMorning = new Date(2024, 0, 15, 0, 0, 0);
+      const todayEvening = new Date(2024, 0, 15, 23, 59, 59);
+      expect(formatDay(todayMorning)).toBe("Today");
+      expect(formatDay(todayEvening)).toBe("Today");
+    });
   });
 
   describe("formatTime", () => {
@@ -69,6 +91,30 @@ describe("formatUtils", () => {
       const timestamp = new Date(2024, 0, 15, 12, 0, 0).getTime();
       const result = formatTime(timestamp);
       expect(result).toMatch(/12:00\s*PM/i);
+    });
+
+    it("uses 12-hour format without leading zeros", () => {
+      const timestamp1 = new Date(2024, 0, 15, 1, 0, 0).getTime();
+      const timestamp13 = new Date(2024, 0, 15, 13, 0, 0).getTime();
+      const result1 = formatTime(timestamp1);
+      const result13 = formatTime(timestamp13);
+      // Should be "1:00 AM" not "01:00 AM"
+      expect(result1).toMatch(/^1:00\s*AM/i);
+      // Should be "1:00 PM" not "01:00 PM"
+      expect(result13).toMatch(/^1:00\s*PM/i);
+    });
+
+    it("always includes minutes with 2 digits", () => {
+      const timestamp = new Date(2024, 0, 15, 9, 5, 0).getTime();
+      const result = formatTime(timestamp);
+      // Should be "9:05 AM" not "9:5 AM"
+      expect(result).toMatch(/9:05\s*AM/i);
+    });
+
+    it("handles 11:59 PM edge case", () => {
+      const timestamp = new Date(2024, 0, 15, 23, 59, 0).getTime();
+      const result = formatTime(timestamp);
+      expect(result).toMatch(/11:59\s*PM/i);
     });
   });
 
@@ -106,6 +152,51 @@ describe("formatUtils", () => {
     it("handles file:// URLs", () => {
       const result = getHostname("file:///path/to/file.html");
       expect(result).toBe("");
+    });
+
+    it("handles URLs with special characters in hostname", () => {
+      expect(getHostname("https://sub-domain.example.com")).toBe(
+        "sub-domain.example.com"
+      );
+      expect(getHostname("https://my_site.example.com")).toBe(
+        "my_site.example.com"
+      );
+    });
+
+    it("returns 'Unknown' for URLs with spaces", () => {
+      expect(getHostname("https://example .com")).toBe("Unknown");
+      expect(getHostname("not a url at all")).toBe("Unknown");
+    });
+
+    it("handles data: URLs", () => {
+      // data: URLs have empty hostname
+      expect(getHostname("data:text/html,<h1>Test</h1>")).toBe("");
+    });
+
+    it("handles about:blank and chrome special pages", () => {
+      // about: URLs have empty hostname
+      expect(getHostname("about:blank")).toBe("");
+      expect(getHostname("chrome-extension://abcdef123456")).toBe(
+        "abcdef123456"
+      );
+    });
+
+    it("handles URLs with query parameters", () => {
+      expect(getHostname("https://example.com?foo=bar&baz=qux")).toBe(
+        "example.com"
+      );
+    });
+
+    it("handles URLs with hash fragments", () => {
+      expect(getHostname("https://example.com#section")).toBe("example.com");
+      expect(getHostname("https://example.com/path#section?query=1")).toBe(
+        "example.com"
+      );
+    });
+
+    it("handles internationalized domain names (IDN)", () => {
+      // Punycode representation
+      expect(getHostname("https://xn--n3h.com")).toBe("xn--n3h.com");
     });
   });
 });
