@@ -20,9 +20,9 @@
 - [x] ⚠️ 🐛 [S] **非復元URLのサニタイズ漏れ** - `sanitizeSnoozedTabsV2` で `isRestorableUrl` を適用し、インポート/復元時に chrome:// 等を除外
 - [x] 🚨 🐛 [S] **storageLock未適用の書き込み経路 (ユーザー操作)** - `importTabs`, `setSnoozedTabs` が `storageLock` を経由せず `popCheck`/`snooze` と競合しうる。ロック経由に統一
 - [x] 💡 🔧 [S] **ドキュメント更新** - ARCHITECTURE/SPEC を現行TS実装に合わせて更新（React 18、.ts拡張子、storageLockパターン）
+- [x] 💡 🧪 [S] **serviceWorker結合テスト** - `onInstalled`/`onStartup` での `initStorage` ・アラーム登録・通知処理の確認
 
 
 ## Backlog
 
-- [ ] 💡 🧪 [S] **serviceWorker結合テスト** - `onInstalled`/`onStartup` での `initStorage` ・アラーム登録・通知処理の確認
 - [ ] 💡 🔧 [S] **storageLock未適用の初期化経路** - `initStorage`, `recoverFromBackup` が `storageLock` を経由しない（起動時のみのため優先度低）
