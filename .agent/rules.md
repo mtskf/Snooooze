@@ -54,4 +54,12 @@ Popup/Options UI  →  chrome.runtime.sendMessage  →  Service Worker (Backgrou
 |------|---------|
 | ARCHITECTURE.md | Full architecture, data model, flows |
 | SPEC.md | Feature specifications |
+| File | Content |
+|------|---------|
+| ARCHITECTURE.md | Full architecture, data model, flows |
+| SPEC.md | Feature specifications |
 | DECISIONS.md | Design decision records |
+| LESSONS.md | Lessons learned during development |
+| TODO.md | Outstanding tasks and future work |
+| CHANGELOG.md | Change history and version notes |
+| TECH_STACK.md | Technology stack and dependencies |
