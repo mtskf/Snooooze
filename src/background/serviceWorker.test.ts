@@ -1,5 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+// Mock snoozeLogic module
+vi.mock('./snoozeLogic', () => ({
+  initStorage: vi.fn().mockResolvedValue(undefined),
+  popCheck: vi.fn().mockResolvedValue(undefined),
+  snooze: vi.fn(),
+  removeSnoozedTabWrapper: vi.fn(),
+  removeWindowGroup: vi.fn(),
+  restoreWindowGroup: vi.fn(),
+  getSnoozedTabsV2: vi.fn(),
+  setSnoozedTabs: vi.fn(),
+  getSettings: vi.fn(),
+  setSettings: vi.fn(),
+  importTabs: vi.fn(),
+  getExportData: vi.fn(),
+}));
+
 describe('serviceWorker notification click handler', () => {
   let notificationClickHandler: ((notificationId: string) => void) | null;
   let tabsCreateMock: ReturnType<typeof vi.fn>;
@@ -108,5 +124,276 @@ describe('serviceWorker notification click handler', () => {
     notificationClickHandler!('unknown-notification');
 
     expect(tabsCreateMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('serviceWorker onInstalled event', () => {
+  let installedHandler: (() => void) | null;
+  let alarmsCreateMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+
+    installedHandler = null;
+    alarmsCreateMock = vi.fn().mockResolvedValue(undefined);
+
+    // Setup chrome API mocks
+    globalThis.chrome = {
+      runtime: {
+        onInstalled: {
+          addListener: vi.fn((handler: () => void) => {
+            installedHandler = handler;
+          }),
+        },
+        onStartup: { addListener: vi.fn() },
+        onMessage: { addListener: vi.fn() },
+        getURL: vi.fn((path: string) => `chrome-extension://fake-id/${path}`),
+      },
+      alarms: {
+        onAlarm: { addListener: vi.fn() },
+        create: alarmsCreateMock,
+      },
+      notifications: {
+        onClicked: { addListener: vi.fn() },
+        create: vi.fn().mockResolvedValue(undefined),
+      },
+      storage: {
+        local: {
+          get: vi.fn().mockResolvedValue({}),
+          set: vi.fn().mockResolvedValue(undefined),
+          getBytesInUse: vi.fn().mockResolvedValue(0),
+        },
+        session: {
+          get: vi.fn().mockResolvedValue({}),
+          set: vi.fn().mockResolvedValue(undefined),
+          remove: vi.fn().mockResolvedValue(undefined),
+        },
+      },
+      tabs: {
+        create: vi.fn(),
+      },
+    } as unknown as typeof chrome;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.resetModules();
+  });
+
+  async function importServiceWorker() {
+    await import('./serviceWorker');
+  }
+
+  it('calls initStorage on install', async () => {
+    const { initStorage } = await import('./snoozeLogic');
+
+    await importServiceWorker();
+
+    expect(installedHandler).not.toBeNull();
+
+    // Trigger onInstalled event
+    await installedHandler!();
+
+    expect(initStorage).toHaveBeenCalledOnce();
+  });
+
+  it('creates popCheck alarm with 1 minute interval', async () => {
+    await importServiceWorker();
+
+    expect(installedHandler).not.toBeNull();
+
+    // Trigger onInstalled event
+    await installedHandler!();
+
+    expect(alarmsCreateMock).toHaveBeenCalledWith('popCheck', { periodInMinutes: 1 });
+  });
+
+  it('calls popCheck after 1 second delay', async () => {
+    const { popCheck } = await import('./snoozeLogic');
+
+    await importServiceWorker();
+
+    expect(installedHandler).not.toBeNull();
+
+    // Trigger onInstalled event
+    const installPromise = installedHandler!();
+
+    // Fast-forward 1 second
+    vi.advanceTimersByTime(1000);
+
+    await installPromise;
+    await vi.runAllTimersAsync();
+
+    expect(popCheck).toHaveBeenCalledOnce();
+  });
+
+  it('checks for pending recovery notification', async () => {
+    const sessionGetMock = vi.fn().mockResolvedValue({
+      pendingRecoveryNotification: 5,
+    });
+    const sessionSetMock = vi.fn().mockResolvedValue(undefined);
+    const sessionRemoveMock = vi.fn().mockResolvedValue(undefined);
+    const notificationsCreateMock = vi.fn().mockResolvedValue(undefined);
+
+    (globalThis.chrome.storage.session.get as ReturnType<typeof vi.fn>) = sessionGetMock;
+    (globalThis.chrome.storage.session.set as ReturnType<typeof vi.fn>) = sessionSetMock;
+    (globalThis.chrome.storage.session.remove as ReturnType<typeof vi.fn>) = sessionRemoveMock;
+    (globalThis.chrome.notifications.create as ReturnType<typeof vi.fn>) = notificationsCreateMock;
+
+    await importServiceWorker();
+
+    expect(installedHandler).not.toBeNull();
+
+    // Trigger onInstalled event
+    await installedHandler!();
+
+    // Should check for pending recovery notification
+    expect(sessionGetMock).toHaveBeenCalledWith(['pendingRecoveryNotification', 'lastRecoveryNotifiedAt']);
+
+    // Should create notification
+    expect(notificationsCreateMock).toHaveBeenCalledWith('recovery-notification', {
+      type: 'basic',
+      iconUrl: 'assets/icon128.png',
+      title: 'Snooooze Data Recovered',
+      message: 'Recovered 5 snoozed tabs from backup.',
+      priority: 1
+    });
+
+    // Should update timestamp
+    expect(sessionSetMock).toHaveBeenCalledWith({ lastRecoveryNotifiedAt: expect.any(Number) });
+
+    // Should clear pending flag
+    expect(sessionRemoveMock).toHaveBeenCalledWith('pendingRecoveryNotification');
+  });
+});
+
+describe('serviceWorker onStartup event', () => {
+  let startupHandler: (() => void) | null;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+
+    startupHandler = null;
+
+    // Setup chrome API mocks
+    globalThis.chrome = {
+      runtime: {
+        onInstalled: { addListener: vi.fn() },
+        onStartup: {
+          addListener: vi.fn((handler: () => void) => {
+            startupHandler = handler;
+          }),
+        },
+        onMessage: { addListener: vi.fn() },
+        getURL: vi.fn((path: string) => `chrome-extension://fake-id/${path}`),
+      },
+      alarms: {
+        onAlarm: { addListener: vi.fn() },
+        create: vi.fn(),
+      },
+      notifications: {
+        onClicked: { addListener: vi.fn() },
+        create: vi.fn().mockResolvedValue(undefined),
+      },
+      storage: {
+        local: {
+          get: vi.fn().mockResolvedValue({}),
+          set: vi.fn().mockResolvedValue(undefined),
+          getBytesInUse: vi.fn().mockResolvedValue(0),
+        },
+        session: {
+          get: vi.fn().mockResolvedValue({}),
+          set: vi.fn().mockResolvedValue(undefined),
+          remove: vi.fn().mockResolvedValue(undefined),
+        },
+      },
+      tabs: {
+        create: vi.fn(),
+      },
+    } as unknown as typeof chrome;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.resetModules();
+  });
+
+  async function importServiceWorker() {
+    await import('./serviceWorker');
+  }
+
+  it('calls initStorage on startup', async () => {
+    const { initStorage } = await import('./snoozeLogic');
+
+    await importServiceWorker();
+
+    expect(startupHandler).not.toBeNull();
+
+    // Trigger onStartup event
+    await startupHandler!();
+
+    expect(initStorage).toHaveBeenCalledOnce();
+  });
+
+  it('calls popCheck after 1 second delay', async () => {
+    const { popCheck } = await import('./snoozeLogic');
+
+    await importServiceWorker();
+
+    expect(startupHandler).not.toBeNull();
+
+    // Trigger onStartup event
+    const startupPromise = startupHandler!();
+
+    // Fast-forward 1 second
+    vi.advanceTimersByTime(1000);
+
+    await startupPromise;
+    await vi.runAllTimersAsync();
+
+    expect(popCheck).toHaveBeenCalledOnce();
+  });
+
+  it('checks for pending recovery notification', async () => {
+    const sessionGetMock = vi.fn().mockResolvedValue({
+      pendingRecoveryNotification: 3,
+    });
+    const sessionSetMock = vi.fn().mockResolvedValue(undefined);
+    const sessionRemoveMock = vi.fn().mockResolvedValue(undefined);
+    const notificationsCreateMock = vi.fn().mockResolvedValue(undefined);
+
+    (globalThis.chrome.storage.session.get as ReturnType<typeof vi.fn>) = sessionGetMock;
+    (globalThis.chrome.storage.session.set as ReturnType<typeof vi.fn>) = sessionSetMock;
+    (globalThis.chrome.storage.session.remove as ReturnType<typeof vi.fn>) = sessionRemoveMock;
+    (globalThis.chrome.notifications.create as ReturnType<typeof vi.fn>) = notificationsCreateMock;
+
+    await importServiceWorker();
+
+    expect(startupHandler).not.toBeNull();
+
+    // Trigger onStartup event
+    await startupHandler!();
+
+    // Should check for pending recovery notification
+    expect(sessionGetMock).toHaveBeenCalledWith(['pendingRecoveryNotification', 'lastRecoveryNotifiedAt']);
+
+    // Should create notification
+    expect(notificationsCreateMock).toHaveBeenCalledWith('recovery-notification', {
+      type: 'basic',
+      iconUrl: 'assets/icon128.png',
+      title: 'Snooooze Data Recovered',
+      message: 'Recovered 3 snoozed tabs from backup.',
+      priority: 1
+    });
+
+    // Should update timestamp
+    expect(sessionSetMock).toHaveBeenCalledWith({ lastRecoveryNotifiedAt: expect.any(Number) });
+
+    // Should clear pending flag
+    expect(sessionRemoveMock).toHaveBeenCalledWith('pendingRecoveryNotification');
   });
 });
