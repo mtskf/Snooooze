@@ -5,7 +5,7 @@ interface FaviconImageProps {
   src?: string | null;
   className?: string;
   fallbackClassName?: string;
-  fallbackIcon?: LucideIcon;
+  FallbackIcon?: LucideIcon;
 }
 
 /**
