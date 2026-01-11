@@ -1,28 +1,66 @@
-# プロジェクトルール
+# Project Rules
 
-Chrome拡張機能（Manifest V3）- タブをスヌーズして後で復元
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 開発
+## Project Overview
+
+Chrome Extension (Manifest V3) - Snooze tabs and automatically restore them at a specified time
+
+Chrome拡張機能（Manifest V3）- タブをスヌーズして指定時刻に自動復元
+
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start dev server (HMR enabled) |
+| `npm run build` | Production build to `dist/` |
+| `npm test` | Run all tests |
+| `npm test -- src/path/to/file.test.ts` | Run single test file |
+| `npm test -- --watch` | Watch mode |
+| `npm run typecheck` | Type check |
+
+
+**Load extension for development:**
+- Navigate to `chrome://extensions/`
+- Enable "Developer mode" (toggle in top right)
+- Click "Load unpacked"
+- Select the `dist/` directory
+
+## Architecture
+
+Popup/Options UI  →  chrome.runtime.sendMessage  →  Service Worker (Background)
+                                                           ↓
+                                                    snoozeLogic.ts
+                                                           ↓
+                                                    Chrome Storage (snoooze_v2)
+```
+
+**Core files:**
+- `src/background/snoozeLogic.ts` - Core snooze/restore logic, storage mutex (prevents race conditions; note: sequential writes may impact performance with bulk operations)
+- `src/background/serviceWorker.ts` - Event listeners, alarm handler
+- `src/messages.ts` - UI ↔ Background IPC contract (bidirectional message protocol)
+- `src/utils/ChromeApi.ts` - Promise-based Chrome API wrapper
+
+**Safety invariant:** Tabs are NEVER closed before storage write succeeds.
+
+## Development Notes
 
 - TypeScript + ES Modules
-- 外部API呼び出しは `try-catch` + リトライ処理
-- タスク完了時は dev-docs/ を更新
+- External API calls: `try-catch` + retry
+- Update dev-docs/ on task completion
 
-## コマンド
+## Documentation (dev-docs/)
 
-| コマンド | 用途 |
-|---------|------|
-| `npm run dev` | 開発サーバー |
-| `npm run build` | 本番ビルド |
-| `npm test` | テスト実行 |
-| `npm run typecheck` | 型チェック |
-
-## ドキュメント (dev-docs/)
-
-| ファイル | 内容 |
-|---------|------|
-| SPEC.md | 機能仕様（ビジネスロジック） |
-| ARCHITECTURE.md | アーキテクチャ・データモデル |
-| DECISIONS.md | 設計判断の記録 |
-| LESSONS.md | 学んだ教訓 |
-| TODO.md | 未完了タスク |
+| File | Content |
+|------|---------|
+| ARCHITECTURE.md | Full architecture, data model, flows |
+| SPEC.md | Feature specifications |
+| File | Content |
+|------|---------|
+| ARCHITECTURE.md | Full architecture, data model, flows |
+| SPEC.md | Feature specifications |
+| DECISIONS.md | Design decision records |
+| LESSONS.md | Lessons learned during development |
+| TODO.md | Outstanding tasks and future work |
+| CHANGELOG.md | Change history and version notes |
+| TECH_STACK.md | Technology stack and dependencies |
