@@ -26,7 +26,6 @@ Chrome拡張機能（Manifest V3）- タブをスヌーズして指定時刻に�
 
 ## Architecture
 
-```
 Popup/Options UI  →  chrome.runtime.sendMessage  →  Service Worker (Background)
                                                            ↓
                                                     snoozeLogic.ts
