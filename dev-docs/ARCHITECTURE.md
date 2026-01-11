@@ -263,12 +263,15 @@ src/
 │   ├── Options.tsx         # Main options page
 │   ├── SnoozedList.tsx     # Grouped tab list
 │   └── *.tsx               # Settings components
+├── components/
+│   └── FaviconImage.tsx    # Resilient favicon with fallback icon
 ├── components/ui/          # shadcn/ui primitives
 ├── utils/
 │   ├── ChromeApi.ts        # Chrome API wrapper
 │   ├── timeUtils.ts        # Time calculations
 │   ├── validation.ts       # Data validators
 │   ├── StorageService.ts   # Import/export helpers
+│   ├── formatUtils.ts      # Date/time/URL formatting utilities
 │   └── constants.ts        # Config, defaults
 ├── messages.ts             # IPC contracts
 ├── types.ts                # TypeScript interfaces
