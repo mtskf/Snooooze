@@ -1,9 +1,11 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, AppWindow, Globe } from "lucide-react";
+import { Trash2, AppWindow } from "lucide-react";
 import { VIVID_COLORS, HEATMAP_COLORS } from "@/utils/constants";
 import { getHexFromClass } from "@/utils/colorUtils";
+import { formatDay, formatTime, getHostname } from "@/utils/formatUtils";
+import { FaviconImage } from "@/components/FaviconImage";
 import { cn } from "@/lib/utils";
 import type { SnoozedItemV2 } from "@/types";
 import type { DayGroup, DisplayItem } from "@/utils/selectors";
@@ -17,34 +19,6 @@ interface SnoozedListProps {
   pendingTabIds?: Set<string>;
 }
 
-interface FaviconImageProps {
-  src?: string | null;
-  className?: string;
-  fallbackClassName?: string;
-}
-
-function FaviconImage({ src, className, fallbackClassName }: FaviconImageProps) {
-  const [hasError, setHasError] = useState(false);
-
-  // Reset error state when src changes
-  useEffect(() => {
-    setHasError(false);
-  }, [src]);
-
-  if (!src || hasError) {
-    return <Globe className={fallbackClassName || className} />;
-  }
-
-  return (
-    <img
-      src={src}
-      className={className}
-      alt=""
-      onError={() => setHasError(true)}
-    />
-  );
-}
-
 const SnoozedList = React.memo(
   ({
     dayGroups = [],
@@ -54,32 +28,40 @@ const SnoozedList = React.memo(
     appearance = "default",
     pendingTabIds = new Set(),
   }: SnoozedListProps) => {
-    // Filter out pending deletions from display
+    // Optimistic UI filtering: Remove tabs pending deletion from display
+    // This provides instant visual feedback while background deletion completes
     const filteredDayGroups = useMemo(() => {
+      // Fast path: No filtering needed if nothing is pending
       if (pendingTabIds.size === 0) return dayGroups;
 
+      // Filter at three levels: days → items → group tabs
       return dayGroups
         .map((day) => {
+          // Level 2: Filter items within each day
           const filteredItems = day.displayItems
             .map((item): DisplayItem | null => {
               if (item.type === 'tab') {
-                // Skip individual tab if pending
+                // Skip individual tab if pending deletion
                 if (pendingTabIds.has(item.data.id)) return null;
                 return item;
               } else {
-                // For groups, filter out pending tabs
+                // Level 3: For grouped tabs, filter out pending tabs from the group
                 const remainingTabs = item.groupItems.filter(
                   (tab) => !pendingTabIds.has(tab.id)
                 );
-                // Skip entire group if all tabs are pending
+                // Skip entire group display if all tabs are pending deletion
                 if (remainingTabs.length === 0) return null;
+                // Return group with reduced tab count
                 return { ...item, groupItems: remainingTabs };
               }
             })
+            // Remove null entries (deleted tabs/empty groups)
             .filter((item): item is DisplayItem => item !== null);
 
+          // Level 1: Return day with filtered items
           return { ...day, displayItems: filteredItems };
         })
+        // Remove days that have no visible items left after filtering
         .filter((day) => day.displayItems.length > 0);
     }, [dayGroups, pendingTabIds]);
 
@@ -258,44 +240,5 @@ const SnoozedList = React.memo(
     return <div>{renderList()}</div>;
   },
 );
-
-function formatDay(date: Date): string {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-  if (target.getTime() === today.getTime()) {
-    return "Today";
-  }
-  if (target.getTime() === tomorrow.getTime()) {
-    return "Tomorrow";
-  }
-
-  return date.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
-function getHostname(url: string | undefined): string {
-  if (!url) return "Unknown";
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return "Unknown";
-  }
-}
 
 export default SnoozedList;
