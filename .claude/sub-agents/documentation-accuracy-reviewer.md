@@ -46,3 +46,10 @@ For each issue:
 - Reference related documentation files that need updates
 
 Focus on documentation that helps developers understand and maintain the code, not bureaucratic documentation for its own sake.
+
+## Error Handling
+
+- If you cannot read a file, skip it and continue with other files
+- Focus on changed files only (use `git diff` to identify them)
+- If encountering large files, focus on the changed sections only
+- For files without documentation needs (e.g., config files), skip documentation review

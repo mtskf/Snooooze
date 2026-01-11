@@ -41,4 +41,24 @@ For each issue:
 - Suggest a concrete improvement
 - Use GitHub suggestion format when providing code fixes
 
+Example inline comment:
+```
+**Code Quality Issue: Poor Variable Naming**
+
+The variable name `x` is not descriptive. Consider renaming to clearly indicate its purpose.
+
+**Suggestion:**
+```typescript
+const userAge = calculateAge(birthDate);
+```
+
+**Impact**: Improves code readability and maintainability.
+```
+
+## Error Handling
+
+- If you cannot read a file, skip it and continue with other files
+- Focus on changed files only (use `git diff` to identify them)
+- If encountering large files (>1000 lines), focus on the changed sections only
+
 Do NOT write a summary comment at the PR level unless there are no specific issues to report.

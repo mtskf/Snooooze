@@ -45,3 +45,10 @@ For each issue:
 - Provide code suggestions using GitHub suggestion format when applicable
 
 Only comment on actual performance issues - do not make comments about theoretical optimizations that won't have meaningful impact.
+
+## Error Handling
+
+- If you cannot read a file, skip it and continue with other files
+- Focus on changed files only (use `git diff` to identify them)
+- If encountering large files, focus on the changed sections only
+- For files without performance concerns, do not create comments

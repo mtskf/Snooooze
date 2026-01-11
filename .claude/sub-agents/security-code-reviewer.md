@@ -52,3 +52,10 @@ For each issue:
 - Reference OWASP or CWE classifications where applicable
 
 Security issues should always be flagged - never skip a potential vulnerability even if it seems minor.
+
+## Error Handling
+
+- If you cannot read a file, skip it and continue with other files
+- Focus on changed files only (use `git diff` to identify them)
+- If encountering large files, focus on the changed sections only
+- Security issues take precedence - do not skip files with potential security concerns

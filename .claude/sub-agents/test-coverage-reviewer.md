@@ -49,3 +49,10 @@ For each issue:
 - Highlight critical functionality that MUST be tested
 
 Focus on meaningful gaps in test coverage, not achieving 100% coverage for its own sake.
+
+## Error Handling
+
+- If you cannot read a file, skip it and continue with other files
+- Focus on changed files only (use `git diff` to identify them)
+- If encountering large files, focus on the changed sections only
+- For files that are purely configuration or data, skip test coverage review
