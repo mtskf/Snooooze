@@ -35,7 +35,7 @@ Popup/Options UI  →  chrome.runtime.sendMessage  →  Service Worker (Backgrou
 ```
 
 **Core files:**
-- `src/background/snoozeLogic.ts` - Core snooze/restore logic, storage mutex
+- `src/background/snoozeLogic.ts` - Core snooze/restore logic, storage mutex (prevents race conditions; note: sequential writes may impact performance with bulk operations)
 - `src/background/serviceWorker.ts` - Event listeners, alarm handler
 - `src/messages.ts` - UI ↔ Background IPC contract
 - `src/utils/ChromeApi.ts` - Promise-based Chrome API wrapper
