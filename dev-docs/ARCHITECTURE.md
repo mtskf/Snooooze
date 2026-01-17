@@ -67,7 +67,7 @@ interface Settings {
 
 1. Alarm fires every 1min + on install/startup
 2. Skip if offline or already restoring
-3. Find due items (`popTime < now`, strict <)
+3. Find due items (`popTime < now`)
 4. **Group by `groupId`**:
    - Grouped tabs → open new window with all URLs together
    - Ungrouped tabs → add to last-focused window (create new if unavailable)

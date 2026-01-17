@@ -53,7 +53,7 @@ All times use user's timezone (settings → system fallback).
 
 - Alarm every 1 min + on install/startup
 - Skip if offline or already restoring
-- Restore comparison: `popTime < now` (tabs restore when scheduled time is in the past, not equal to current time)
+- Find due items: `popTime < now` (scheduled time must be in the past)
 - Restore grouped tabs → new window | ungrouped → last-focused window (fallback: new window)
 - Retry 3x with 200ms intervals
 - Failed tabs → Save to session storage, reschedule +5min, show notification
