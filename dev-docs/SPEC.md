@@ -1,10 +1,6 @@
 # Functional Specifications
 
-**Scope**: What the system does (user-visible behavior, timing, constraints)
-**Audience**: QA, product managers, feature planning
-**Authority**: Source of truth for user-facing requirements
-
-Defines "what the system does" (vs ARCHITECTURE.md = "how it's built")
+> User requirements (behavior, timing, constraints)
 
 ## Terminology
 

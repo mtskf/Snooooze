@@ -1,8 +1,6 @@
 # Architecture
 
-**Scope**: How the system is built (data structures, algorithms, concurrency, file organization)
-**Audience**: Developers implementing features
-**Authority**: Source of truth for implementation details
+> Implementation details (structure, algorithms, file organization)
 
 Chrome Extension (Manifest V3) - Snooze tabs and restore at scheduled time
 

@@ -1,8 +1,11 @@
 # Project Rules
 
-**Purpose**: Quick reference for AI coding assistants
+> Quick reference for AI coding assistants
 
-See `dev-docs/ARCHITECTURE.md` for implementation details, `dev-docs/SPEC.md` for features.
+See more details:
+
+- `dev-docs/ARCHITECTURE.md` - Implementation details (structure, algorithms, file organization)
+- `dev-docs/SPEC.md` - Requirements (behavior, timing, constraints)
 
 ## Overview
 
