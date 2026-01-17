@@ -1,121 +1,105 @@
 # Functional Specifications
 
-This document defines the functional behavior, business logic, and user interface rules for the Snooooze extension. It serves as the source of truth for "what the system does," distinct from `ARCHITECTURE.md` which explains "how it is built."
+**Scope**: What the system does (user-visible behavior, timing, constraints)
+**Audience**: QA, product managers, feature planning
+**Authority**: Source of truth for user-facing requirements
 
-## 1. Terminology
+Defines "what the system does" (vs ARCHITECTURE.md = "how it's built")
+
+## Terminology
 
 | Term | Definition |
-| :--- | :--- |
-| **Snooze** | The action of closing a tab (or tabs) and scheduling it to be reopened at a later time. |
-| **Restore** | The action of reopening a snoozed tab when its scheduled time arrives. |
-| **Scope** | The target of the snooze action. Can be "Selected Tabs" (default) or "Current Window". |
-| **Zoned Time** | Time calculated based on the user's system timezone (or manually configured timezone). |
-| **Window Group** | Multiple tabs snoozed together (either when the user selects multiple tabs or snoozes a full window). Stored under a shared `groupId`. |
+|------|------------|
+| Snooze | Close tab(s), schedule restoration |
+| Restore | Reopen snoozed tab at scheduled time |
+| Scope | "Selected Tabs" (highlighted) or "Current Window" |
+| Window Group | Tabs snoozed together with shared `groupId` |
 
-## 2. Snooze Logic & Timing
+## Snooze
 
-The core logic for calculating snooze times resides in `src/utils/timeUtils.ts`.
+**URL Validation:**
 
-### 2.1. Time Calculation Rules
+- Skip invalid/restricted URLs (e.g., `chrome://`, `chrome-extension://`)
+- Tab remains open if URL is not restorable
 
-All calculations are based on the **Current Zoned Time** (timezone comes from settings, falling back to the system timezone).
+**Timing:**
 
-**Day-of-week settings:** `weekend-begin` and `week-begin` follow JavaScript `Date.getDay()` (0=Sunday, 6=Saturday).
+All times use user's timezone (settings → system fallback). Day-of-week: `Date.getDay()` (0=Sunday, 6=Saturday)
 
-| Option | Logic Specification | Default Setting |
-| :--- | :--- | :--- |
-| **Later Today** | Current time + 1 hour. Minutes are preserved; seconds are cleared. | Fixed: +1 hour |
-| **This Evening** | Today at `end-day`. <br> **Visibility:** Hidden when current time is past `end-day`. | `end-day`: 5:00 PM |
-| **Tomorrow** | Tomorrow at `start-day`. <br> **Exception:** If current time is before `start-day`, uses the current calendar date. <br> **Label:** Displayed as "This morning" when before `start-day`. In Settings, shown as "Tomorrow / This morning (after midnight)". | `start-day`: 8:00 AM |
-| **This Weekend** | Next occurrence of `weekend-begin` day (never the current day). Time is `start-day`. <br> **Label:** Displayed as "Next weekend" when current day is Saturday or Sunday. In Settings, shown as "This weekend / Next weekend (during weekend)". | `weekend-begin`: Saturday (6)<br>`start-day`: 8:00 AM |
-| **Next Monday** | Next occurrence of Monday (never "today"). Time is `start-day`. | `start-day`: 8:00 AM |
-| **In a Week** | Current date + 7 days at `start-day`. | `start-day`: 8:00 AM |
-| **In a Month** | Current date + 1 month (using `date-fns/addMonths`) at `start-day`. | `start-day`: 8:00 AM |
-| **Pick Date** | Selected date at `start-day` time. Calendar starts on Monday. (Handled in `Popup.tsx`; `getTime("pick-date")` returns `undefined`.) | `start-day`: 8:00 AM |
+| Option | Logic | Default |
+|--------|-------|---------|
+| Later Today | +1 hour (preserves minutes) | - |
+| This Evening | Today at `end-day` <br> Hidden if past `end-day` | 5:00 PM |
+| Tomorrow | Tomorrow at `start-day` <br> Exception: Before `start-day` → today ("This morning") | 8:00 AM |
+| This Weekend | Next `weekend-begin` at `start-day` | Sat 8:00 AM |
+| Next Monday | Next Mon at `start-day` | 8:00 AM |
+| In a Week | +7 days at `start-day` | 8:00 AM |
+| In a Month | +1 month at `start-day` | 8:00 AM |
+| Pick Date | Selected date at `start-day` | 8:00 AM |
 
-### 2.2. "Early Morning" Exception (Start-Day Threshold)
-To prevent frustration when working late (e.g., at 2 AM), "Tomorrow" refers to the *logical* tomorrow (after waking up), which is effectively the calendar's "Today".
-- **Rule:** If `Current Hour < start-day hour` (default 8 AM), "Tomorrow" uses the current calendar date instead of adding a day, and displays as "This morning".
+**Early Morning Exception**: If current hour < `start-day` (default 8AM), "Tomorrow" uses today's date → displays "This morning"
 
-## 3. Scope & Shortcuts
+## Scope & Shortcuts
 
-### 3.1. Scope Selection
-- **Selected Tabs:** Only the currently highlighted tabs are snoozed. Even if multiple tabs are selected, they are stored individually (no `groupId`).
-- **Current Window:** All tabs in the current window are snoozed together with a shared `groupId`.
-- A `groupId` is **only** assigned when scope is explicitly "Window". Multi-selected tabs in "Selected" scope do **not** get a `groupId` and will restore in the current window, not a new one.
+**Scope:**
+- **Selected Tabs**: Highlighted tabs, no `groupId` → restore in last-focused window
+- **Current Window**: All tabs, shared `groupId` → restore in new window
 
-### 3.2. Keyboard Shortcuts
-- **Single Key:** Triggers snooze for the corresponding option (e.g., 'T' for Tomorrow).
-- **Modifier (Shift):** Temporarily toggles the scope to "Current Window" while held.
-    - Example: `T` snoozes selected tabs to Tomorrow. `Shift + T` snoozes the entire window to Tomorrow.
-- **DatePicker Scope Preservation:** When opening the DatePicker with `Shift + P`, the "Window" scope is preserved even after the Shift key is released. The scope at the time of opening is stored in `calendarScope` state.
-- **Configurable:** Default shortcuts live in `src/utils/constants.ts` and can be customized in Options.
-- **Settings Source:** Popup reads settings via background messaging (`getSettings`) instead of direct storage access.
+**Keyboard:**
+- Single key (e.g., `T`) → Snooze selected tabs
+- `Shift` + key → Snooze entire window
+- `Shift + P` or window scope → DatePicker preserves scope
+- Customizable in Options UI
 
-## 4. Restore Logic
+## Restore
 
-### 4.1. Trigger
-- An alarm (`popCheck`) runs every **1 minute**.
-- Checks for any snoozed items with `popTime <= Date.now()`.
-- Skips restore if already restoring or if the browser is offline.
+- Alarm every 1 min + on install/startup
+- Skip if offline or already restoring
+- Find items with scheduled time < now (strict <, not <=)
+- Restore grouped tabs → new window | ungrouped → last-focused window (fallback: new window)
+- Retry 3x with 200ms intervals
+- Failed tabs → Save to session storage, reschedule +5min, show notification
 
-### 4.2. Grouping & Window Restoration
-- Tabs snoozed as a "Window" share a `groupId`.
-- Tabs with a `groupId` (Snoozed as Window) are restored together in a **new window**. Ungrouped tabs (Snoozed as Selection) are restored into the last focused window. The "Open in New Tab" setting has been removed; behavior is strictly scope-based.
-- **No Confirmation for Single Group Deletion:** Deleting a single window group does not show a confirmation dialog. "Delete All" still requires confirmation.
+## UI Themes
 
-## 5. UI & Themes
+Defined in `constants.ts`:
+- **Default**: Blue/Indigo monochrome
+- **Vivid**: Semantic colors (Tomorrow=Blue, Weekend=Green)
+- **Heatmap**: Urgency colors (Later Today=Red, Tomorrow=Orange)
 
-### 5.1. Appearance Modes
-Defined in `src/utils/constants.ts`.
+## Data Integrity
 
-- **Default:** Monochromatic Blue/Indigo. Professional and calm.
-- **Vivid:** Semantic colors.
-    - `Tomorrow`: Blue
-    - `Weekend`: Green
-    - `Evening`: Purple
-    - `Later Today`: Cyan
-- **Heatmap:** Urgency-based colors.
-    - `Later Today`: Red (Critical)
-    - `Evening`: Red-Orange
-    - `Tomorrow`: Orange
-    - `Weekend`: Yellow (Warm)
+**Backup:**
+- 3 rotating backups: `snoozedTabs_backup_<ts>`
+- Debounced 2s
+- Validates before backup
 
+**Recovery:**
+- On startup: Validate `snoooze_v2`
+- If invalid → `recoverFromBackup` (valid → sanitized with most items → empty reset)
+- `ensureValidStorage` sanitizes invalid entries
+- Notify user with recovered item count (5-min cooldown)
 
+**Import:**
 
-## 6. Data Integrity
+- Reject future schema versions (> current version)
+- Validation (no URL validation for existing entries)
+- Regenerate UUIDs on collision
+- Repair mode for minor issues
+- Merge with existing data (no overwrite)
 
-### 6.1. Backup System
-- **Rotation**: 3 generations of backups stored as `snoozedTabs_backup_<timestamp>`.
-- **Debounce**: Backup rotation is debounced by 2 seconds to avoid excessive writes during rapid snoozing.
-- **Validation**: Data is validated before backup (must have `tabCount`, numeric timestamp keys, and valid tab entries with `url`, `creationTime`, `popTime`).
+## Storage & UI Features
 
-### 6.2. Recovery
-- **Trigger**: If `snoozedTabs` is missing, non-object, or fails validation, recovery is attempted.
-- **Process**: Backups are scanned newest-first; the first valid backup is restored.
-- **Fallback**: If no valid backups exist, resets to `{ tabCount: 0 }`.
-- **Notification**: Shows "Recovered X snoozed tabs from backup" with 5-minute deduplication.
-- **V2 Validation Trigger**: If `snoooze_v2` fails validation on startup, recovery is attempted and a pending notification is queued.
+**Storage Warning:**
 
-### 6.3. Migration
-- On first run after update, if valid data exists but no backups, an initial backup is created.
+- Warning: 8MB (80%), Clear: 7MB (70%) - hysteresis pattern
+- Notify once per 24h
+- In-app banner in Options
+- Firefox: Disabled (`getBytesInUse` unsupported)
 
-### 6.4. Import & Repair
-- **Strict Validation**: Imports are checked against strict schema (same as backups).
-- **Repair Mode**: If validation fails due to minor issues (e.g., `tabCount` mismatch, missing non-critical fields), the validator returns `repairable: true`.
-- **Sanitization**: User can choose to "Sanitize & Import". This recalculates the `tabCount` and filters out only the strictly invalid entries, preserving the rest.
-- **Implementation**: Import/export is centralized in `StorageService` (validate, sanitize, merge, and error handling). The Options UI delegates to this service and only shows success/error messages.
-- **Merge Source**: Import merges with current data fetched via background (`getSnoozedTabsV2`) to avoid overwrites.
+**UI Features:**
 
-## 7. Storage & Limits
-
-### 7.1. Storage Size Warning
-- **Goal**: Prevent data loss by warning users when `chrome.storage.local` is nearing its quota (10MB in standard Chrome extensions, though `unlimitedStorage` permission usually raises this, purely local usage is monitored here against safe thresholds).
-- **Metric**: Uses `chrome.storage.local.getBytesInUse`.
-- **Thresholds**:
-    - **Warning Level**: > 80% (approx 8.3MB).
-    - **Clear Level**: < 70% (hysteresis to prevent flickering).
-- **Triggers**: Checks on **startup** and **after every snoozedTabs write** (debounced 2s).
-- **Notification**: Standard system notification (throttled to once every 24 hours). Clicking opens Options page.
-- **In-App Banner**: Options page shows a destructive-colored alert when warning is active.
-- **Firefox Compatibility**: Feature is disabled gracefully on Firefox as `getBytesInUse` is not supported for `local` storage in MV2/MV3 implementation contexts uniformly.
+- Search/filter snoozed items (by title/URL)
+- Failed restore dialog (session storage → Options)
+- Undo delete (via `useUndoDelete`)
+- Clear all (with confirmation)
