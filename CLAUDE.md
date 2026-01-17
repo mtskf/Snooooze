@@ -1,10 +1,8 @@
 # Project Rules
 
-Quick reference for essential context. See `dev-docs/` for details:
+**Purpose**: Quick reference for AI coding assistants
 
-- `dev-docs/ARCHITECTURE.md` - System design
-- `dev-docs/SPEC.md` - Feature specifications
-- `dev-docs/DECISIONS.md` - Design decisions log
+See `dev-docs/ARCHITECTURE.md` for implementation details, `dev-docs/SPEC.md` for features.
 
 ## Overview
 
